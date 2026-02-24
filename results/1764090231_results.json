@@ -1,0 +1,94 @@
+{
+    "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1764090231_img.jpg",
+    "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1764090231_img.jpg",
+    "raw_text": "\\\n\nHAA Eledees\n\nanvrentaa.aces + atelfemonaces sl eaeneiordte\n\nBHMS.COM\n\nBAMS.\n\nmeas\n\nNee\n\nReg. No, 19349\n\nReg No. 1 26728-A1\n\nReg Mo. PRITR/2022\n\nen: ain waren, a waa. ea aN, FAA. GTA. (0230) 2rG0999\n\n9021761870\n\nDate &\n\n7742: Prachi Yadav (20y, Female)\n\n: 25-Sep-2025 06:14\n\nTime\n\nPM\n\nComplaints: FEVER\n\nOLD\n\nCOUGH , VOMITING , LOOSE MOTION\n\nDiagnosis: URTI\n\nXx\n\nMedicine\n\n\u201cTiming - Freq. - Duration\n\nQty\n\nDosage _\n\nS\n\nPAN HD *\n\n0-\n\n0\n\nBefore Food - Daily - 5 Days\n\nc\n\n\u2018\n\n1\n\nBefore bre\n\nakfast\n\n2\n\nHETRODOX LB 100 MG CAPSULE *\n\ni\n\n0-\n\n1\n\n~ After Food - Dally - 5 Days\n\nCo\n\nosition\n\nDoxycycline\n\n0M\n\nores\n\nTim\n\n9\n\n1\n\nAfter breakf\n\n34\n\no-\n\n1\n\n~ After Food - Daily - 5 Days\n\n) ney 200MG TABLET *\n\nAi\n\nkf\n\nAfte\n\nXPECT LS *\n\nAfter Food - Daily - 5 Days\n\n11 MG\n\nAfter break\n\nBROLEM TAB *\n\n\u2014\u2014\n\n7\n\nAfter Food - Daily - 5 Days\n\niming\n\n1 After dir\n\n6)\n\n\u2014\n\nan\n\nNAMSTER P *\n\no-\n\n1\n\n\"After Food - Daily - 5 Days\n\ni\n\nTiming\n\n1 _ After breakfast,\n\n1\n\nAfter dinner\n\na,\n\nCor\n\nPowered by HeaitiPtx EMR. ware: heathgtin con",
+    "cleaned_text": "\\\n\nHAA Eledees\n\nanvrentaa.aces + atelfemonaces sl eaeneiordte\n\nBHMS.COM\n\nBAMS.\n\nmeas\n\nNee\n\nReg. No, 19349\n\nReg No. 1 26728-A1\n\nReg Mo. PRITR/2022\n\nen: ain warfarinn, a waa. ea aN, FAA. GTA. (0230) 2rG0999\n\n9021761870\n\nDate &\n\n7742: Prachi Yadav (20y, Female)\n\n: 25-Sep-2025 06:14\n\nintramusculare\n\nPM\n\nComplaints: FEVER\n\nonce once once once once once daily\n\nCOUGH , VOMITING , omeprazole ibuprofen\n\nDiagnosis: URTI\n\nXx\n\nMedicine\n\n\u201cintramuscularing - Freq. - Duration\n\nQty\n\nDosage _\n\nS\n\nPAN HD *\n\n0-\n\n0\n\nBefore Food - once once once once once daily - 5 Days\n\nc\n\n\u2018\n\n1\n\nBefore bre\n\nakfast\n\n2\n\nHETRODOX LB 100 MG CAPSULE *\n\ni\n\n0-\n\n1\n\n~ After Food - once once once once once daily - 5 Days\n\nCo\n\nosition\n\ndoxycycline\n\n0M\n\nores\n\nintramuscular\n\n9\n\n1\n\nAfter breakf\n\n34\n\no-\n\n1\n\n~ After Food - once once once once once daily - 5 Days\n\n) ney 200MG rabeprazole *\n\nAi\n\nkf\n\nAfte\n\nXPECT LS *\n\nAfter Food - once once once once once daily - 5 Days\n\n11 MG\n\nAfter break\n\nBROLEM TAB *\n\n\u2014\u2014\n\n7\n\nAfter Food - once once once once once daily - 5 Days\n\niming\n\n1 After dir\n\n6)\n\n\u2014\n\nan\n\nNAMSTER P *\n\no-\n\n1\n\n\"After Food - once once once once once daily - 5 Days\n\ni\n\nintramuscularing\n\n1 _ After breakfast,\n\n1\n\nAfter dinner\n\na,\n\nCor\n\nPowered by HeaitiPtx EMR. warfarin: heathgtin clonazepam",
+    "medications": [
+        "rabeprazole",
+        "doxycycline",
+        "omeprazole",
+        "warfarin",
+        "ibuprofen",
+        "clonazepam"
+    ],
+    "dosages": [
+        "11 MG",
+        "100 MG",
+        "200MG"
+    ],
+    "frequencies": [
+        "once daily"
+    ],
+    "routes": [
+        "intramuscular"
+    ],
+    "confidence": 87.4,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.7238942426488757,
+    "medical_signal": 0.32558139534883723,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1764090231_img.jpg",
+    "accuracy": {
+        "overall_accuracy": 87.4,
+        "character_accuracy": 87.4,
+        "word_accuracy": 87.4,
+        "medication_accuracy": 87.4
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Rabeprazole",
+            "dosage": "11 MG",
+            "frequency": "once daily",
+            "duration": "5 days",
+            "instruction": "intramuscular"
+        },
+        {
+            "name": "Doxycycline",
+            "dosage": "100 MG",
+            "frequency": "once daily",
+            "duration": "5 days",
+            "instruction": "intramuscular"
+        },
+        {
+            "name": "Omeprazole",
+            "dosage": "200MG",
+            "frequency": "once daily",
+            "duration": "5 days",
+            "instruction": "intramuscular"
+        },
+        {
+            "name": "Warfarin",
+            "dosage": "11 MG",
+            "frequency": "once daily",
+            "duration": "5 days",
+            "instruction": "intramuscular"
+        },
+        {
+            "name": "Ibuprofen",
+            "dosage": "11 MG",
+            "frequency": "once daily",
+            "duration": "5 days",
+            "instruction": "intramuscular"
+        },
+        {
+            "name": "Clonazepam",
+            "dosage": "11 MG",
+            "frequency": "once daily",
+            "duration": "5 days",
+            "instruction": "intramuscular"
+        }
+    ],
+    "medication_count": 6,
+    "patient_name": "Aditya",
+    "doctor_name": "Sanket",
+    "date": "2025-11-25",
+    "user_id": 2,
+    "language_labels": [
+        "English"
+    ]
+}

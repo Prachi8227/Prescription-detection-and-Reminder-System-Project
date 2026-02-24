@@ -1,0 +1,29 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761384332_WhatsApp_Image_2025-10-25_at_2.54.29_PM.jpeg",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761384332_WhatsApp_Image_2025-10-25_at_2.54.29_PM.jpeg",
+    "raw_text": "-\n\nSAO ay. eS shat ara ores Steet aieie- :\nBUMS, COM. BASES. <\nReg. No, 19349 Reg Bo. 126726 AL Rez, Xe. rasan\n\nTia aurea, Or wae. Sas wa, ead. GIA. (0290) 240999\n\n. on\n3 25-Sep-2025 06:14\n\n\u2014~w SO/ 6,\n\n7742: Prachl Yadav (20y;.Female) - 9021761870 Date &\nTime PM\n\nConiplaints: FEVER, COLD , COUGH , VOMITING , LOOSE MOTION\n\nDingnosis: URN}\nN\nMediciite Dosage Timing ~ Freq: -'Duration Qty\n1) PAN HD * i- 0- 9 Before Food - Dally -'5'Days 5\nConiposition : Domperidene 30 MG + Pantoprazole 40 MG\nTinting :_ 1 Before breakfast :\n2) HETRODOX:LB 100 MGCAPSULE\u00ae i- 0- 1 After Food - Dally - 5 Days 6\nComposition : Doxycycline 100 MG + Lactobscitus 5 Bidlbon Spores /\n__iiniin i After breakfast, 1 After dinner f\n3) HIFEN 200MG TABLET be l- 0-1 After-Foad - Dally -.5 Days. 6\nComposition 2 Cefixime 200 MG 3\nTimin 1 After breakfast, 1 anise aries\n4) XPECT is* Im O- 2 After Food - Dally - 5.Days- 4\nComposition : Ambroxo! 30 MG + Guaifenesin 50 IG + Levocatbutamo! L MG\nTiming. :_1 After breakfast, 1 After dinner\n5) BROLEM TAB * O- O- 1 After Food - Dally - 5 Days 5\nTiming : 1 After dinner\n6) NAMSTER P * i- O- 1 After Food - Daily - 5 Days. 6.\n\nTiming + 1. After breakfast, 1 After dinner\n\nV)_",
+    "cleaned_text": "-\n\nSAO ay. eS shat ara ores Steet aieie- :\nBUMS, COM. BASES. <\nReg. No, 19349 Reg Bo. 126726 AL Rez, Xe. rasan\n\nTia aurea, Or wae. Sas wa, ead. GIA. (0290) 240999\n\n. on\n3 25-Sep-2025 06:14\n\n\u2014~w SO/ 6,\n\n7742: Prachl Yadav (20y;.Female) - 9021761870 Date &\nTime PM\n\nConiplaints: FEVER, COLD , COUGH , VOMITING , omeprazole ibuprofen\n\nDingnosis: URN}\nN\nMediciite Dosage Timing ~ Freq: -'Duration Qty\n1) PAN HD * i- 0- 9 Before Food - once once daily -'5'Days 5\nConiposition : domperidone 30 MG + pantoprazole 40 MG\nTinting :_ 1 Before breakfast :\n2) HETRODOX:LB 100 MGCAPSULE\u00ae i- 0- 1 After Food - once once daily - 5 Days 6\nComposition : doxycycline 100 MG + Lactobscitus 5 Bidlbon Spores /\n__iiniin i After breakfast, 1 After dinner f\n3) aceclofenac 200MG rabeprazole be l- 0-1 After-Foad - once once daily -.5 Days. 6\nComposition 2 cefixime 200 MG 3\nTimin 1 After breakfast, 1 nimesulide aries\n4) XPECT is* Im O- 2 After Food - once once daily - 5.Days- 4\nComposition : Ambroxo! 30 MG + Guaifenesin 50 IG + Levocatbutamo! L MG\nTiming. :_1 After breakfast, 1 After dinner\n5) BROLEM TAB * O- O- 1 After Food - once once daily - 5 Days 5\nTiming : 1 After dinner\n6) NAMSTER P * i- O- 1 After Food - once daily - 5 Days. 6.\n\nTiming + 1. After breakfast, 1 After dinner\n\nV)_",
+    "medications": [
+        "doxycycline",
+        "domperidone",
+        "omeprazole",
+        "aceclofenac",
+        "pantoprazole",
+        "cefixime",
+        "rabeprazole",
+        "nimesulide",
+        "ibuprofen"
+    ],
+    "dosages": [
+        "200MG",
+        "40 MG",
+        "100 MG",
+        "30 MG",
+        "200 MG"
+    ],
+    "frequencies": [
+        "once daily"
+    ],
+    "routes": [],
+    "confidence": 85.00000000000001
+}

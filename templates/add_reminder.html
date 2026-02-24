@@ -1,0 +1,216 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+    .reminder-builder {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    .reminder-hero {
+        background: linear-gradient(135deg, rgba(0, 219, 222, 0.2) 0%, rgba(252, 0, 255, 0.18) 100%);
+        border-radius: 28px;
+        padding: 28px;
+        box-shadow: 0 25px 60px -40px rgba(31, 38, 135, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+    }
+    .reminder-hero h2 {
+        margin-bottom: 8px;
+        font-size: 1.9rem;
+        color: #111827;
+    }
+    .reminder-hero p {
+        margin: 0;
+        color: #475569;
+        font-size: 0.95rem;
+    }
+    .reminder-form-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 24px;
+        padding: 26px;
+        border: 1px solid rgba(229, 231, 235, 0.65);
+        box-shadow: 0 30px 70px -45px rgba(15, 23, 42, 0.45);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    .reminder-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+    }
+    .reminder-field label {
+        display: block;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+        color: #64748b;
+    }
+    .reminder-field input,
+    .reminder-field select {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(209, 213, 219, 0.9);
+        background: rgba(248, 250, 252, 0.95);
+        font-size: 0.95rem;
+        color: #1f2937;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .reminder-field input:focus,
+    .reminder-field select:focus {
+        outline: none;
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    }
+    .frequency-help {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 6px;
+    }
+    .reminder-sidebar {
+        background: rgba(15, 23, 42, 0.85);
+        color: white;
+        border-radius: 22px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .reminder-sidebar h4 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    .reminder-sidebar ul {
+        margin: 0;
+        padding-left: 18px;
+        color: rgba(226, 232, 240, 0.85);
+        font-size: 0.9rem;
+    }
+    .reminder-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+    .reminder-primary {
+        padding: 12px 22px;
+        border-radius: 14px;
+        border: none;
+        background: linear-gradient(135deg, #00dbde, #43c7ff);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 20px 35px -20px rgba(0, 219, 222, 0.6);
+    }
+    .reminder-secondary {
+        padding: 12px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(255, 255, 255, 0.85);
+        color: #0f172a;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .timezone-note {
+        font-size: 0.85rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    @media (max-width: 768px) {
+        .reminder-form-card {
+            padding: 20px;
+        }
+        .reminder-actions {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="reminder-builder">
+    <section class="reminder-hero">
+        <h2>Create a medication reminder</h2>
+        <p>Enter the therapy details and we’ll email you exactly on time (India Standard Time).</p>
+    </section>
+
+    <div class="reminder-form-card">
+        <form method="POST" action="{{ url_for('add_reminder') }}">
+            <div class="reminder-form-grid">
+                <div class="reminder-field">
+                    <label for="medication">Medication name</label>
+                    <input type="text" id="medication" name="medication" placeholder="e.g., Amoxicillin" required>
+                </div>
+                <div class="reminder-field">
+                    <label for="dosage">Dosage</label>
+                    <input type="text" id="dosage" name="dosage" placeholder="e.g., 500 mg or 1 tablet">
+                </div>
+                <div class="reminder-field">
+                    <label for="frequency">Frequency</label>
+                    <input list="frequency-options" id="frequency" name="frequency" placeholder="Select or type" required>
+                    <datalist id="frequency-options">
+                        <option value="Once daily">
+                        <option value="Twice daily">
+                        <option value="Three times daily">
+                        <option value="Every 8 hours">
+                        <option value="Every night">
+                        <option value="As needed">
+                    </datalist>
+                    <p class="frequency-help">Need something custom? Just type it above.</p>
+                </div>
+                <div class="reminder-field">
+                    <label for="start_date">Start date</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+                <div class="reminder-field">
+                    <label for="end_date">End date (optional)</label>
+                    <input type="date" id="end_date" name="end_date">
+                </div>
+                <div class="reminder-field">
+                    <label for="time_of_day">Time (IST)</label>
+                    <input type="time" id="time_of_day" name="time_of_day" step="60" required>
+                </div>
+            </div>
+
+            <div class="timezone-note">
+                <i class="fas fa-clock"></i>
+                All reminders are delivered in India Standard Time (IST, UTC+05:30).
+            </div>
+
+            <div class="reminder-actions">
+                <a href="{{ url_for('reminders') }}" class="reminder-secondary">Back to reminders</a>
+                <button type="submit" class="reminder-primary">Save reminder</button>
+            </div>
+        </form>
+    </div>
+
+    <aside class="reminder-sidebar">
+        <h4>Tips for accurate alerts</h4>
+        <ul>
+            <li>Use a descriptive medication name so you recognise the email instantly.</li>
+            <li>Set the start date to today or later; we’ll automatically roll missed times to the next day.</li>
+            <li>Adjust the end date if the course is limited. Leave blank for ongoing therapy.</li>
+            <li>Emails are sent exactly at the chosen time with IST timestamps for clarity.</li>
+        </ul>
+    </aside>
+</div>
+
+<script>
+    (function() {
+        const today = new Date();
+        const isoDate = today.toISOString().split('T')[0];
+        const startInput = document.getElementById('start_date');
+        const endInput = document.getElementById('end_date');
+        if (startInput) {
+            startInput.min = isoDate;
+            if (!startInput.value) {
+                startInput.value = isoDate;
+            }
+        }
+        if (endInput) {
+            endInput.min = isoDate;
+        }
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761328451_pr.jpg",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761328451_pr.jpg",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 50.0,
+    "preprocessed_url": "/results/enhanced_1761328451_pr.jpg",
+    "accuracy": {
+        "overall_accuracy": 50.0,
+        "character_accuracy": 50.0,
+        "word_accuracy": 50.0,
+        "medication_accuracy": 50.0
+    },
+    "patient_name": "Prachi Yadav",
+    "doctor_name": "Aditya Yadav",
+    "date": "2025-10-24"
+}

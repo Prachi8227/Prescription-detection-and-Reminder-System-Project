@@ -1,0 +1,144 @@
+{
+    "60789f5426518b2606d3196c0d668e47": {
+        "perceptual_hash": "1101010110000010101011110111011101010100000011111101100110000000",
+        "image_path": "training_data\\images\\60789f5426518b2606d3196c0d668e47.jpg",
+        "ocr_results": {
+            "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1764513832_pic.jpg",
+            "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1764513832_pic.jpg",
+            "raw_text": "Moxikind CV\r\nfepanil \r\nTusq",
+            "cleaned_text": "moxikind cv\r\nfepanil \r\ntusq",
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
+            "routes": [],
+            "durations": [],
+            "medicines_strict": {
+                "medicines": []
+            },
+            "confidence": 87.4,
+            "languages_used": [
+                "eng"
+            ],
+            "ocr_engine": "tesseract",
+            "paddleocr_attempted": false,
+            "paddleocr_used": false,
+            "handwriting_detected": false,
+            "handwriting_attempted": false,
+            "text_quality": 0.8114627864601585,
+            "medical_signal": 0.10144927536231885,
+            "ocr_mode": "auto",
+            "structured_prescriptions": [],
+            "medication_count": 0
+        }
+    },
+    "7f77e1e2f0accf62c72a620b3d919db2": {
+        "perceptual_hash": "1101000010000000000010110101010110101010101111011110010011111110",
+        "image_path": "training_data\\images\\7f77e1e2f0accf62c72a620b3d919db2.jpeg",
+        "ocr_results": {
+            "image_path": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\1771836564_pre1.jpeg",
+            "preprocessed_image": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1771836564_pre1.jpeg",
+            "raw_text": "Zerflox o2, Gut ok cap, Tab Meftalspcs, Andial",
+            "cleaned_text": "zerflox o2, gut ok cap, tab meftalspcs, andial",
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
+            "routes": [],
+            "durations": [],
+            "medicines_strict": {
+                "medicines": []
+            },
+            "confidence": 38.33941855043749,
+            "languages_used": [
+                "eng"
+            ],
+            "ocr_engine": "handwriting",
+            "paddleocr_attempted": false,
+            "paddleocr_used": false,
+            "handwriting_detected": true,
+            "handwriting_attempted": true,
+            "text_quality": 0.6455555555555555,
+            "medical_signal": 0.06666666666666667,
+            "ocr_mode": "auto",
+            "structured_prescriptions": [
+                {
+                    "name": "Gut Ok",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Meftalspcs",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Meftalspcs",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Meftalspcs",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Zerflox",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Meftalspcs",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Andial",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Meftalspcs",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Zerflox",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Meftalspcs",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Andial",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                }
+            ],
+            "medication_count": 11
+        }
+    }
+}

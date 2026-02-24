@@ -1,0 +1,21 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761388663_WhatsApp_Image_2025-10-25_at_2.48.35_PM_1.jpeg",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761388663_WhatsApp_Image_2025-10-25_at_2.48.35_PM_1.jpeg",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 0.0,
+    "preprocessed_url": "/results/enhanced_1761388663_WhatsApp_Image_2025-10-25_at_2.48.35_PM_1.jpeg",
+    "accuracy": {
+        "overall_accuracy": 0.0,
+        "character_accuracy": 0.0,
+        "word_accuracy": 0.0,
+        "medication_accuracy": 0.0
+    },
+    "patient_name": "Aditya yadav",
+    "doctor_name": "prachi yadav",
+    "date": "2025-10-25"
+}

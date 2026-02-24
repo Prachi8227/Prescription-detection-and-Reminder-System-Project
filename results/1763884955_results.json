@@ -1,0 +1,44 @@
+{
+    "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1763884955_pre2.jpg",
+    "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1763884955_pre2.jpg",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 50.0,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "handwriting_attempted": true,
+    "handwriting_detected": false,
+    "text_quality": 0.0,
+    "medical_signal": 0.0,
+    "ocr_mode": "force_handwriting",
+    "preprocessed_url": "/uploads/enhanced_1763884955_pre2.jpg",
+    "accuracy": {
+        "overall_accuracy": 50.0,
+        "character_accuracy": 50.0,
+        "word_accuracy": 50.0,
+        "medication_accuracy": 50.0
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Medication 1",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 1,
+    "patient_name": "Aditya",
+    "doctor_name": "Prachi",
+    "date": "2025-11-23",
+    "user_id": 1,
+    "language_labels": [
+        "English"
+    ]
+}

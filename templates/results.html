@@ -1,0 +1,1377 @@
+{% extends "ocr_base.html" %}
+
+{% block title %}OCR Results - MediScribe AI{% endblock %}
+
+{% block custom_css %}
+.results-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, rgba(0, 219, 222, 0.15) 0%, rgba(252, 0, 255, 0.1) 100%);
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 22px 55px -35px rgba(31, 38, 135, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    filter: blur(1px);
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.summary-header h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #1f2937;
+}
+
+.summary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.65);
+    font-weight: 600;
+    color: #1f2937;
+    box-shadow: 0 10px 24px -20px rgba(0, 0, 0, 0.45);
+}
+
+.summary-search {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    position: relative;
+    z-index: 1;
+}
+
+.summary-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #1f2937;
+    outline: none;
+}
+
+/* Professional prescription summary: label + value rows */
+.prescription-summary-block {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    padding: 24px 28px;
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 18px 40px -28px rgba(17, 24, 39, 0.25);
+    position: relative;
+    z-index: 1;
+}
+
+.prescription-summary-block h3 {
+    margin: 0 0 20px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 2px solid rgba(0, 219, 222, 0.35);
+    padding-bottom: 10px;
+}
+
+.prescription-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px 28px;
+}
+
+.prescription-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.prescription-detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.prescription-detail-value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.prescription-detail-value.empty {
+    font-weight: 500;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.summary-body {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    position: relative;
+    z-index: 1;
+}
+
+.summary-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #00dbde, #43c7ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.6rem;
+    box-shadow: 0 16px 30px -18px rgba(0, 219, 222, 0.8);
+}
+
+.summary-info h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #111827;
+}
+
+.summary-info p {
+    margin: 4px 0;
+    color: #4b5563;
+    font-size: 0.9rem;
+}
+
+.summary-actions {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.summary-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #fff;
+    color: #0f62fe;
+    box-shadow: 0 18px 35px -25px rgba(15, 98, 254, 0.7);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.summary-actions a:hover {
+    transform: translateY(-2px);
+}
+
+.summary-actions .call-doctor {
+    background: linear-gradient(135deg, #00dbde, #43c7ff);
+    color: #fff;
+    box-shadow: 0 18px 40px -30px rgba(0, 219, 222, 0.8);
+}
+
+.summary-actions .call-doctor i {
+    font-size: 1rem;
+}
+
+.doctor-insights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.certificate-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    box-shadow: 0 18px 38px -35px rgba(0, 0, 0, 0.45);
+}
+
+.certificate-badge i {
+    font-size: 1.6rem;
+    color: #0f62fe;
+}
+
+.certificate-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #1f2937;
+}
+
+.certificate-meta span:first-child {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.certificate-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    margin-top: 6px;
+    color: #0f62fe;
+    text-decoration: none;
+}
+
+.certificate-link:hover {
+    text-decoration: underline;
+}
+
+.rating-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: rgba(15, 98, 254, 0.08);
+    border: 1px solid rgba(15, 98, 254, 0.15);
+}
+
+.rating-overview .average-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.rating-overview .rating-count {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.care-connect {
+    background: rgba(255, 255, 255, 0.78);
+    border-radius: 24px;
+    padding: 28px;
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    box-shadow: 0 20px 45px -32px rgba(15, 23, 42, 0.45);
+}
+
+.care-connect h4 {
+    margin: 0 0 18px;
+    color: #111827;
+    font-weight: 600;
+}
+
+.care-connect-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.engagement-card,
+.contact-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(244, 246, 255, 0.8) 100%);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(229, 231, 235, 0.7);
+    box-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contact-card h5 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.1rem;
+}
+
+.certificate-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.certificate-details div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.certificate-details dt {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+.certificate-details dd {
+    margin: 0;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.contact-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.contact-item:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
+.contact-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+.contact-icon.doctor {
+    background: linear-gradient(135deg, #00dbde, #43c7ff);
+}
+
+.contact-icon.pharmacy {
+    background: linear-gradient(135deg, #fc00ff, #7d2ae8);
+}
+
+.contact-content h6 {
+    margin: 0;
+    font-size: 1rem;
+    color: #111827;
+}
+
+.contact-content p {
+    margin: 4px 0 8px;
+    color: #4b5563;
+    font-size: 0.9rem;
+}
+
+.contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.call-link,
+.map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.call-link {
+    background: linear-gradient(135deg, #00dbde, #43c7ff);
+    color: #fff;
+    box-shadow: 0 12px 24px -18px rgba(0, 219, 222, 0.8);
+}
+
+.map-link {
+    background: rgba(15, 98, 254, 0.08);
+    color: #0f62fe;
+    border: 1px solid rgba(15, 98, 254, 0.15);
+}
+
+.call-link:hover,
+.map-link:hover {
+    transform: translateY(-2px);
+}
+
+.call-link.disabled,
+.map-link.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.contact-missing {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.map-wrapper {
+    margin-top: 22px;
+    position: relative;
+}
+
+#careMap {
+    width: 100%;
+    min-height: 320px;
+    border-radius: 20px;
+    border: 1px solid rgba(229, 231, 235, 0.7);
+    display: none;
+}
+
+.map-fallback {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 20px;
+    background: rgba(243, 244, 246, 0.9);
+    border: 1px dashed rgba(107, 114, 128, 0.4);
+    color: #4b5563;
+    text-align: center;
+    padding: 24px;
+}
+
+.map-fallback i {
+    font-size: 1.8rem;
+    color: #6b7280;
+}
+
+.doctor-review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.doctor-review-form .input-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.rating-stars {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.rating-stars input {
+    display: none;
+}
+
+.rating-stars label {
+    font-size: 1.6rem;
+    color: #cbd5f5;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.rating-stars label:hover,
+.rating-stars label:hover ~ label,
+.rating-stars input:checked ~ label {
+    color: #f59e0b;
+}
+
+.rating-stars label i {
+    pointer-events: none;
+}
+
+.doctor-review-form textarea {
+    min-height: 100px;
+    border-radius: 12px;
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    padding: 10px 12px;
+    resize: vertical;
+    font-size: 0.95rem;
+    color: #1f2937;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.review-submit {
+    align-self: flex-start;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fc00ff, #7d2ae8);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 16px 35px -28px rgba(124, 37, 232, 0.7);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px -24px rgba(124, 37, 232, 0.65);
+}
+
+.rating-status {
+    font-size: 0.85rem;
+    color: #10b981;
+    min-height: 18px;
+}
+
+.rating-status.error {
+    color: #ef4444;
+}
+
+.user-rating-summary {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    color: #047857;
+}
+
+.user-rating-summary strong {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.user-rating-comment {
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: #065f46;
+}
+
+.map-popup {
+    max-width: 220px;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+.map-popup__meta {
+    margin: 6px 0;
+    color: #4b5563;
+}
+
+.map-popup__actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #0f62fe;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.map-popup__actions a:hover {
+    text-decoration: underline;
+}
+
+.medications-section {
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.medications-section h4 {
+    margin-bottom: 18px;
+    color: #111827;
+    font-weight: 600;
+}
+
+/* Professional medication table header (for desktop) */
+.medication-table-header {
+    display: none;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1.5fr;
+    gap: 16px;
+    padding: 12px 20px;
+    background: rgba(0, 219, 222, 0.12);
+    border-radius: 14px 14px 0 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (min-width: 900px) {
+    .medication-table-header { display: grid; }
+}
+
+.medication-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.medication-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(243, 244, 255, 0.8) 100%);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(229, 231, 235, 0.7);
+    box-shadow: 0 20px 45px -28px rgba(17, 24, 39, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.medication-card h5 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.medication-card .med-name-title {
+    font-size: 0.7rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.medication-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.med-chip-name { grid-column: 1 / -1; }
+.med-name-value { font-weight: 700; font-size: 1.05rem; color: #111827; }
+.med-chip-instruction { min-width: 140px; }
+
+.med-chip {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chip-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.med-chip span {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.medication-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.details-card {
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    box-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
+}
+
+.details-card h5 {
+    margin-bottom: 12px;
+    color: #111827;
+}
+
+.detail-card-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.prescription-text {
+    background: rgba(249, 250, 251, 0.8);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    max-height: 280px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.image-preview {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid rgba(229, 231, 235, 0.7);
+    background: rgba(243, 244, 246, 0.7);
+}
+
+.image-preview img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.summary-footer {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.summary-footer a {
+    text-decoration: none;
+    color: #1f2937;
+    font-size: 0.9rem;
+}
+
+.next-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.next-steps a {
+    padding: 10px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+}
+
+.next-steps a.primary {
+    background: linear-gradient(135deg, #00dbde, #43c7ff);
+    color: #fff;
+    box-shadow: 0 18px 38px -25px rgba(0, 219, 222, 0.6);
+}
+
+.next-steps a.secondary {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 219, 222, 0.4);
+    color: #0f62fe;
+}
+
+.next-steps a.neutral {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(252, 0, 255, 0.35);
+    color: #fc00ff;
+}
+
+.next-steps a:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .summary-card {
+        padding: 22px;
+    }
+    .summary-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .summary-actions {
+        margin-left: 0;
+        width: 100%;
+        align-items: stretch;
+    }
+    .summary-actions a {
+        justify-content: center;
+    }
+    .next-steps {
+        justify-content: center;
+    }
+    .care-connect {
+        padding: 22px;
+    }
+    .care-connect-grid {
+        grid-template-columns: 1fr;
+    }
+    .contact-item {
+        flex-direction: column;
+    }
+    .contact-actions {
+        justify-content: flex-start;
+    }
+    .call-link,
+    .map-link {
+        width: 100%;
+        justify-content: center;
+    }
+    .doctor-review-form textarea {
+        width: 100%;
+    }
+    .rating-stars {
+        justify-content: center;
+    }
+    .user-rating-summary {
+        text-align: center;
+    }
+}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha512-vBQM2x1VZ4VHKs3P6Kycd+Y6z+4PSJVpaz6RtWLpmjHtkobaN6D+PfYZ7RUTpujISiFDUFxu05PON7dG8m8Jig=="
+        crossorigin=""></script>
+{% if not results.error %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('medicationSearch');
+    const cards = document.querySelectorAll('.medication-card');
+    const emptyState = document.getElementById('medicationEmptyState');
+
+    if (searchInput && cards.length) {
+        searchInput.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            let visible = 0;
+
+            cards.forEach(card => {
+                const text = (card.getAttribute('data-search') || '').toLowerCase();
+                if (!query || text.includes(query)) {
+                    card.style.display = 'flex';
+                    visible++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (emptyState) {
+                emptyState.style.display = visible === 0 ? 'block' : 'none';
+            }
+        });
+    }
+
+    const ratingForm = document.getElementById('doctorRatingForm');
+    if (ratingForm) {
+        const ratingStatus = document.getElementById('ratingStatus');
+        const ratingValueEl = document.getElementById('userRatingValue');
+        const ratingCommentEl = document.getElementById('userRatingComment');
+        const ratingInputs = ratingForm.querySelectorAll('input[name="doctorRating"]');
+        const feedbackInput = ratingForm.querySelector('textarea[name="feedback"]');
+        const doctorKeyRaw = ratingForm.dataset.doctor || 'doctor';
+        const storageKey = `mediscribe-rating-${doctorKeyRaw.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+        const storedValue = window.localStorage.getItem(storageKey);
+
+        const syncDisplay = (payload) => {
+            if (!ratingValueEl) {
+                return;
+            }
+            if (!payload) {
+                ratingValueEl.textContent = 'Not rated yet.';
+                if (ratingCommentEl) {
+                    ratingCommentEl.textContent = '';
+                }
+                return;
+            }
+            ratingValueEl.textContent = `${payload.rating}/5`;
+            if (ratingCommentEl) {
+                ratingCommentEl.textContent = payload.feedback || '';
+            }
+        };
+
+        if (storedValue) {
+            try {
+                const data = JSON.parse(storedValue);
+                const match = Array.from(ratingInputs).find(input => input.value === String(data.rating));
+                if (match) {
+                    match.checked = true;
+                }
+                if (feedbackInput && data.feedback) {
+                    feedbackInput.value = data.feedback;
+                }
+                syncDisplay(data);
+            } catch (error) {
+                console.warn('Unable to parse saved rating', error);
+                syncDisplay(null);
+            }
+        } else {
+            syncDisplay(null);
+        }
+
+        ratingForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const selected = Array.from(ratingInputs).find(input => input.checked);
+            if (!selected) {
+                if (ratingStatus) {
+                    ratingStatus.textContent = 'Select a star rating to submit.';
+                    ratingStatus.classList.add('error');
+                }
+                return;
+            }
+            const payload = {
+                rating: selected.value,
+                feedback: feedbackInput ? feedbackInput.value.trim() : ''
+            };
+            try {
+                window.localStorage.setItem(storageKey, JSON.stringify(payload));
+                if (ratingStatus) {
+                    ratingStatus.textContent = 'Thanks for sharing your rating!';
+                    ratingStatus.classList.remove('error');
+                }
+                syncDisplay(payload);
+            } catch (error) {
+                if (ratingStatus) {
+                    ratingStatus.textContent = 'Unable to save your rating on this device.';
+                    ratingStatus.classList.add('error');
+                }
+            }
+        });
+    }
+
+    const mapContainer = document.getElementById('careMap');
+    const fallback = document.getElementById('mapFallback');
+    if (mapContainer && typeof L !== 'undefined') {
+        let doctorLocation = null;
+        let pharmacyLocation = null;
+        let doctorLabel = 'Doctor';
+        let pharmacyLabel = 'Pharmacy';
+        const locationDataEl = document.getElementById('careLocationData');
+
+        if (locationDataEl) {
+            try {
+                const parsedData = JSON.parse(locationDataEl.textContent || '{}');
+                if (parsedData && typeof parsedData === 'object') {
+                    if (parsedData.doctor) {
+                        doctorLocation = parsedData.doctor;
+                    }
+                    if (parsedData.pharmacy) {
+                        pharmacyLocation = parsedData.pharmacy;
+                    }
+                    if (parsedData.doctorLabel) {
+                        doctorLabel = parsedData.doctorLabel;
+                    }
+                    if (parsedData.pharmacyLabel) {
+                        pharmacyLabel = parsedData.pharmacyLabel;
+                    }
+                }
+            } catch (error) {
+                console.warn('Unable to parse location data', error);
+            }
+        }
+
+        const hasDoctor = doctorLocation && doctorLocation.lat && doctorLocation.lng;
+        const hasPharmacy = pharmacyLocation && pharmacyLocation.lat && pharmacyLocation.lng;
+
+        if (hasDoctor || hasPharmacy) {
+            mapContainer.style.display = 'block';
+            const map = L.map(mapContainer, { zoomControl: true, scrollWheelZoom: false });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            const markers = [];
+
+            const escapeHtml = (value) => {
+                if (!value && value !== 0) {
+                    return '';
+                }
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            };
+
+            const appendMarker = (location, label, type) => {
+                if (!location || !location.lat || !location.lng) {
+                    return;
+                }
+                const marker = L.marker([location.lat, location.lng]).addTo(map);
+                const sanitizedPhone = location.phone ? String(location.phone).replace(/[^+0-9]/g, '') : '';
+                const phoneLink = sanitizedPhone
+                    ? `<p class="map-popup__actions"><a href="tel:${sanitizedPhone}"><i class="fas fa-phone"></i> Call ${type === 'doctor' ? 'Doctor' : 'Pharmacy'}</a></p>`
+                    : '';
+                const address = location.address ? `<p class="map-popup__meta">${escapeHtml(location.address)}</p>` : '';
+                const popupHtml = `
+                    <div class="map-popup">
+                        <strong>${escapeHtml(label)}</strong>
+                        ${address}
+                        ${phoneLink}
+                    </div>
+                `;
+                marker.bindPopup(popupHtml);
+                markers.push(marker);
+            };
+
+            appendMarker(doctorLocation, doctorLocation.label || doctorLabel, 'doctor');
+            appendMarker(pharmacyLocation, pharmacyLocation.label || pharmacyLabel, 'pharmacy');
+
+            if (markers.length === 1) {
+                map.setView(markers[0].getLatLng(), 13);
+            } else if (markers.length > 1) {
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.25));
+            } else {
+                map.setView([20.5937, 78.9629], 5);
+            }
+
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 200);
+
+            if (fallback) {
+                fallback.style.display = 'none';
+            }
+        } else if (fallback) {
+            fallback.style.display = 'flex';
+        }
+    } else if (fallback) {
+        fallback.style.display = 'flex';
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha512-sA+e2tkh039BLt1YkyZx2lE8p8nH3UX0YPD+s/COM24kTx5cDIeEJD7BqXc9E+u6KDAdAm8YGtXl5wQ64Kx0Gw=="
+      crossorigin=""/>
+{% endblock %}
+
+{% block content %}
+<div class="results-shell">
+    {% if results.error %}
+    <div class="alert alert-danger">
+        <h4>Error</h4>
+        <p>{{ results.error }}</p>
+        <a href="/" class="btn btn-primary">Try Again</a>
+    </div>
+    {% else %}
+    <section class="summary-card">
+        <div class="summary-header">
+            <div>
+                <h2>All Prescriptions</h2>
+                <p class="reminders-subtitle">Digitized directly from your uploaded prescription.</p>
+            </div>
+            <div class="summary-chips">
+                <span class="summary-chip"><i class="fas fa-pills"></i>{{ results.medication_count }} medicines</span>
+                <span class="summary-chip"><i class="fas fa-percentage"></i>{{ results.accuracy.overall_accuracy }}% accuracy</span>
+                {% if results.language_labels %}
+                <span class="summary-chip"><i class="fas fa-language"></i>{{ results.language_labels|join(', ') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="summary-search">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.471 6.471 0 0 0 1.57-4.23A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14A4.5 4.5 0 1 1 14 9.5 4.505 4.505 0 0 1 9.5 14z"/></svg>
+            <input type="text" id="medicationSearch" placeholder="Search medicines, dosage or frequency">
+        </div>
+
+        <div class="prescription-summary-block">
+            <h3>Prescription details</h3>
+            <div class="prescription-details-grid">
+                <div class="prescription-detail-item">
+                    <span class="prescription-detail-label">Patient name</span>
+                    <span class="prescription-detail-value {{ 'empty' if not results.patient_name else '' }}">{{ results.patient_name or '—' }}</span>
+                </div>
+                <div class="prescription-detail-item">
+                    <span class="prescription-detail-label">Doctor / Prescriber</span>
+                    <span class="prescription-detail-value {{ 'empty' if not results.doctor_name else '' }}">{{ results.doctor_name or '—' }}</span>
+                </div>
+                <div class="prescription-detail-item">
+                    <span class="prescription-detail-label">Date</span>
+                    <span class="prescription-detail-value {{ 'empty' if not results.date else '' }}">{{ results.date or '—' }}</span>
+                </div>
+                <div class="prescription-detail-item">
+                    <span class="prescription-detail-label">OCR confidence</span>
+                    <span class="prescription-detail-value">{% if results.accuracy and results.accuracy.overall_accuracy != 'N/A' %}{{ results.accuracy.overall_accuracy }}%{% else %}{{ results.accuracy.overall_accuracy if results.accuracy else '—' }}{% endif %}</span>
+                </div>
+                {% if results.language_labels %}
+                <div class="prescription-detail-item">
+                    <span class="prescription-detail-label">Languages</span>
+                    <span class="prescription-detail-value">{{ results.language_labels|join(', ') }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="summary-body">
+            <div class="summary-avatar">
+                {% if results.doctor_name %}
+                {{ results.doctor_name|trim|first|upper }}
+                {% else %}
+                DR
+                {% endif %}
+            </div>
+            <div class="summary-info">
+                <h3>{{ results.patient_name or 'Prescription' }}</h3>
+                <p>{{ results.date or 'Invalid date' }}</p>
+                <p>{{ results.doctor_name or 'Unknown doctor' }}</p>
+            </div>
+            <div class="summary-actions">
+                {% if results.doctor_phone %}
+                <a class="call-doctor" href="tel:{{ results.doctor_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}">
+                    <i class="fas fa-phone"></i>
+                    <span>Call Doctor</span>
+                </a>
+                {% endif %}
+                {% if original_image %}
+                <a href="{{ original_image }}" target="_blank">View Image</a>
+                {% endif %}
+                {% if results.preprocessed_url %}
+                <a href="{{ results.preprocessed_url }}" target="_blank">Enhanced Image</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="doctor-insights">
+            <div class="certificate-badge">
+                <i class="fas fa-id-badge"></i>
+                <div class="certificate-meta">
+                    <span>Certificate</span>
+                    <strong>{{ results.doctor_certificate or 'Not provided' }}</strong>
+                    {% if results.doctor_certificate_authority %}
+                    <small>Issued by {{ results.doctor_certificate_authority }}</small>
+                    {% endif %}
+                    {% if results.doctor_certificate_valid_until %}
+                    <small>Valid until {{ results.doctor_certificate_valid_until }}</small>
+                    {% endif %}
+                    {% if results.doctor_certificate_url %}
+                    <a class="certificate-link" href="{{ results.doctor_certificate_url }}" target="_blank" rel="noopener">
+                        <i class="fas fa-eye"></i>
+                        <span>View certificate</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="rating-overview">
+                <div>
+                    <span class="average-value">
+                        {% if results.doctor_rating_average %}
+                        {{ "%.1f"|format(results.doctor_rating_average) }}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </span>
+                </div>
+                <div>
+                    <span>Average rating</span>
+                    <span class="rating-count">
+                        {% if results.doctor_rating_count %}
+                        Based on {{ results.doctor_rating_count }} review{{ 's' if results.doctor_rating_count != 1 else '' }}
+                        {% else %}
+                        Awaiting first review
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="care-connect" data-aos="fade-up">
+        <h4>Doctor Certificate &amp; Care Network</h4>
+        <div class="care-connect-grid">
+            <article class="engagement-card">
+                <h5>Share Your Experience</h5>
+                <p class="text-muted">Leave a quick rating so other patients know what to expect.</p>
+                <form id="doctorRatingForm" class="doctor-review-form" data-doctor="{{ results.doctor_name or 'Doctor' }}">
+                    <label class="input-label">Your rating</label>
+                    <div class="rating-stars">
+                        <input type="radio" id="rating-5" name="doctorRating" value="5">
+                        <label for="rating-5" title="5 stars"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="rating-4" name="doctorRating" value="4">
+                        <label for="rating-4" title="4 stars"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="rating-3" name="doctorRating" value="3">
+                        <label for="rating-3" title="3 stars"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="rating-2" name="doctorRating" value="2">
+                        <label for="rating-2" title="2 stars"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="rating-1" name="doctorRating" value="1">
+                        <label for="rating-1" title="1 star"><i class="fas fa-star"></i></label>
+                    </div>
+                    <label class="input-label" for="ratingFeedback">Feedback (optional)</label>
+                    <textarea id="ratingFeedback" name="feedback" placeholder="Add any notes about your visit..."></textarea>
+                    <button type="submit" class="review-submit">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Submit rating</span>
+                    </button>
+                    <p id="ratingStatus" class="rating-status" role="status"></p>
+                    <div class="user-rating-summary">
+                        <strong>Your saved rating</strong>
+                        <span id="userRatingValue">Not rated yet.</span>
+                        <p id="userRatingComment" class="user-rating-comment"></p>
+                    </div>
+                </form>
+            </article>
+            <article class="contact-card">
+                <h5>Quick Contacts</h5>
+                <div class="contact-item">
+                    <div class="contact-icon doctor"><i class="fas fa-user-md"></i></div>
+                    <div class="contact-content">
+                        <h6>{{ results.doctor_name or 'Primary Doctor' }}</h6>
+                        <p>{{ results.clinic_name or results.doctor_speciality or 'Clinic details not available' }}</p>
+                        <div class="contact-actions">
+                            {% if results.doctor_phone %}
+                            <a class="call-link" href="tel:{{ results.doctor_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}">
+                                <i class="fas fa-phone"></i>
+                                <span>Call Doctor</span>
+                            </a>
+                            {% else %}
+                            <span class="contact-missing">Phone number unavailable</span>
+                            {% endif %}
+                            {% if results.doctor_address %}
+                            <a class="map-link" href="https://www.google.com/maps/search/?api=1&query={{ results.doctor_address|urlencode }}" target="_blank" rel="noopener">
+                                <i class="fas fa-location-dot"></i>
+                                <span>Directions</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon pharmacy"><i class="fas fa-prescription-bottle-alt"></i></div>
+                    <div class="contact-content">
+                        <h6>{{ results.pharmacy_name or 'Preferred Pharmacy' }}</h6>
+                        <p>{{ results.pharmacy_address or 'Nearby pharmacy details not available' }}</p>
+                        <div class="contact-actions">
+                            {% if results.pharmacy_phone %}
+                            <a class="call-link" href="tel:{{ results.pharmacy_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') }}">
+                                <i class="fas fa-phone"></i>
+                                <span>Call Pharmacy</span>
+                            </a>
+                            {% else %}
+                            <span class="contact-missing">Phone number unavailable</span>
+                            {% endif %}
+                            {% if results.pharmacy_address %}
+                            <a class="map-link" href="https://www.google.com/maps/search/?api=1&query={{ results.pharmacy_address|urlencode }}" target="_blank" rel="noopener">
+                                <i class="fas fa-location-dot"></i>
+                                <span>Directions</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+        <div class="map-wrapper">
+            <div id="careMap" aria-label="Doctor and pharmacy locations map"></div>
+           
+        </div>
+        <script type="application/json" id="careLocationData">
+            {{ {
+                'doctor': results.get('doctor_location'),
+                'pharmacy': results.get('pharmacy_location'),
+                'doctorLabel': results.doctor_name or 'Doctor',
+                'pharmacyLabel': results.get('pharmacy_name') or 'Pharmacy'
+            } | tojson }}
+        </script>
+    </section>
+
+    <section class="medications-section">
+        <h4>Prescribed medicines</h4>
+        {% if results.structured_prescriptions %}
+        <div class="medication-table-header">
+            <span>Medicine name</span>
+            <span>Dosage</span>
+            <span>Frequency</span>
+            <span>Duration</span>
+            <span>Instructions</span>
+        </div>
+        <div class="medication-grid" id="medicationGrid">
+            {% for med in results.structured_prescriptions %}
+            <article class="medication-card" data-search="{{ med.name }} {{ med.dosage }} {{ med.frequency }} {{ med.duration }} {{ med.instruction }}">
+                <div class="medication-meta">
+                    <div class="med-chip med-chip-name">
+                        <span class="chip-label">Medicine name</span>
+                        <span class="med-name-value">{{ med.name }}</span>
+                    </div>
+                    <div class="med-chip">
+                        <span class="chip-label">Dosage</span>
+                        <span>{{ med.dosage or '—' }}</span>
+                    </div>
+                    <div class="med-chip">
+                        <span class="chip-label">Frequency</span>
+                        <span>{{ med.frequency or '—' }}</span>
+                    </div>
+                    <div class="med-chip">
+                        <span class="chip-label">Duration</span>
+                        <span>{{ med.duration or '—' }}</span>
+                    </div>
+                    <div class="med-chip med-chip-instruction">
+                        <span class="chip-label">Instructions</span>
+                        <span>{{ med.instruction or '—' }}</span>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        <div id="medicationEmptyState" class="no-results" style="display:none;">
+            <p>No medicines match your search.</p>
+        </div>
+        {% else %}
+        <p class="text-muted">No medications detected.</p>
+        {% endif %}
+    </section>
+
+    <section class="details-grid">
+        <div class="details-card">
+            <h5><span class="detail-card-label">OCR output</span> Extracted text</h5>
+            <pre class="prescription-text">{{ results.raw_text or 'No text extracted.' }}</pre>
+        </div>
+        <div class="details-card">
+            <h5><span class="detail-card-label">Processed</span> Cleaned text</h5>
+            <pre class="prescription-text">{{ results.cleaned_text or results.raw_text or '—' }}</pre>
+        </div>
+        {% if original_image %}
+        <div class="details-card">
+            <h5><span class="detail-card-label">Source</span> Original prescription</h5>
+            <div class="image-preview">
+                <img src="{{ original_image }}" alt="Prescription image">
+            </div>
+        </div>
+        {% endif %}
+    </section>
+
+    <div class="next-steps">
+        <a href="/" class="primary">Process Another</a>
+        <a href="/history" class="secondary">View History</a>
+        <a href="/training" class="neutral">Train Image</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

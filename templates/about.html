@@ -1,0 +1,355 @@
+{% extends "ocr_base.html" %}
+
+{% block title %}About - MediScribe AI{% endblock %}
+
+{% block custom_css %}
+.timeline {
+    position: relative;
+    max-width: 1200px;
+    margin: 2rem auto;
+}
+
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    background: green;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -3px;
+    border-radius: 10px;
+}
+
+.timeline-container {
+    padding: 10px 40px;
+    position: relative;
+    background-color: inherit;
+    width: 50%;
+}
+
+.timeline-container::after {
+    content: '';
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    right: -12px;
+    background-color: white;
+    border: 4px solid #00DBDE;
+    top: 20px;
+    border-radius: 50%;
+    z-index: 1;
+    box-shadow: 0 0 0 4px rgba(0, 219, 222, 0.2);
+    transition: all 0.3s ease;
+}
+
+.timeline-container:hover::after {
+    background-color: #FC00FF;
+    transform: scale(1.1);
+}
+
+.left {
+    left: 0;
+}
+
+.right {
+    left: 50%;
+}
+
+.left::after {
+    left: auto;
+    right: -12px;
+}
+
+.right::after {
+    left: -12px;
+}
+
+.timeline-content {
+    padding: 20px 30px;
+    background-color: white;
+    position: relative;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-content h5 {
+    color: #00DBDE;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+.timeline-content h5 i {
+    margin-right: 0.5rem;
+    color: #00DBDE;
+    -webkit-text-fill-color: currentColor;
+}
+
+.feature-list li {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+}
+
+.feature-list li i {
+    color: #00DBDE;
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.tech-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.tech-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.tech-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.tech-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #00DBDE;
+}
+
+.workflow-steps {
+    counter-reset: step-counter;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.workflow-steps li {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-left: 3rem;
+    padding-bottom: 1.5rem;
+    border-left: 2px dashed #FC00FF;
+    margin-left: 1rem;
+}
+
+.workflow-steps li:last-child {
+    border-left: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.workflow-steps li::before {
+    counter-increment: step-counter;
+    content: counter(step-counter);
+    position: absolute;
+    left: -1rem;
+    width: 2rem;
+    height: 2rem;
+    background-color: #00DBDE;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.future-enhancements li {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+}
+
+.future-enhancements li i {
+    color: #FC00FF;
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    background-color: white;
+}
+
+.card-header {
+    background-color: white;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.badge.bg-info {
+    background-color: #00DBDE !important;
+}
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="text-center p-4 mb-4">
+        <h1 class="mb-2">About MediScribe AI</h1>
+        <p class="lead">Advanced Medical Prescription OCR System</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Project Overview</span>
+                    <span class="badge bg-info">College Project</span>
+                </div>
+                <div class="card-body">
+                    <p>MediScribe AI is an advanced Optical Character Recognition (OCR) system specifically designed to extract and process information from handwritten medical prescriptions. The system utilizes multiple image preprocessing techniques and specialized OCR algorithms to achieve high accuracy rates, even with challenging doctor's handwriting.</p>
+                    
+                    <p>This project addresses the real-world challenge of digitizing medical prescriptions, which can help reduce medication errors, streamline pharmacy workflows, and improve patient safety.</p>
+                    
+                    <h5 class="mt-4">Key Features:</h5>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-image"></i> <div><strong>Advanced Image Preprocessing:</strong> Applies multiple filters and transformations to enhance handwriting visibility and improve OCR accuracy.</div></li>
+                        <li><i class="fas fa-file-medical-alt"></i> <div><strong>Medical Dictionary Integration:</strong> Uses a comprehensive database of medication names and terminology to improve recognition and correct errors.</div></li>
+                        <li><i class="fas fa-brain"></i> <div><strong>Machine Learning Models:</strong> Employs CNN (Convolutional Neural Network) models for enhanced character recognition.</div></li>
+                        <li><i class="fas fa-graduation-cap"></i> <div><strong>Training System:</strong> Allows users to train the system with specific images for 100% recognition accuracy on subsequent uploads.</div></li>
+                        <li><i class="fas fa-desktop"></i> <div><strong>User-Friendly Interface:</strong> Provides an intuitive web interface for uploading prescriptions and viewing results.</div></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card-header">Technical Architecture</div>
+                <div class="card-body">
+                    <h5><i class="fas fa-layer-group me-2"></i>Technology Stack</h5>
+                    
+                    <div class="tech-stack">
+                        <div class="tech-item">
+                            <div class="tech-icon"><i class="fab fa-python"></i></div>
+                            <h6>Python</h6>
+                            <p class="text-muted small">Core Processing</p>
+                        </div>
+                        
+                        <div class="tech-item">
+                            <div class="tech-icon"><i class="fas fa-flask"></i></div>
+                            <h6>Flask</h6>
+                            <p class="text-muted small">Web Framework</p>
+                        </div>
+                        
+                        <div class="tech-item">
+                            <div class="tech-icon"><i class="fas fa-cogs"></i></div>
+                            <h6>PaddleOCR</h6>
+                            <p class="text-muted small">OCR Engine</p>
+                        </div>
+                        
+                        <div class="tech-item">
+                            <div class="tech-icon"><i class="fas fa-laptop-code"></i></div>
+                            <h6>HTML/CSS/JS</h6>
+                            <p class="text-muted small">Frontend</p>
+                        </div>
+                        
+                        <div class="tech-item">
+                            <div class="tech-icon"><i class="fab fa-bootstrap"></i></div>
+                            <h6>Bootstrap</h6>
+                            <p class="text-muted small">UI Framework</p>
+                        </div>
+                        
+                        <div class="tech-item">
+                            <div class="tech-icon"><i class="fas fa-database"></i></div>
+                            <h6>JSON</h6>
+                            <p class="text-muted small">Data Storage</p>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-5"><i class="fas fa-project-diagram me-2"></i>System Workflow</h5>
+                    <ol class="workflow-steps">
+                        <li>Prescription image is uploaded through the web interface</li>
+                        <li>Image preprocessing enhances quality and readability</li>
+                        <li>OCR engine extracts raw text from the processed image</li>
+                        <li>Text preprocessing cleans and normalizes the extracted text</li>
+                        <li>Medical dictionary matching identifies medications and dosages</li>
+                        <li>Results are displayed in a structured, user-friendly format</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="400">
+                <div class="card-header">Development Timeline</div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-container left">
+                            <div class="timeline-content">
+                                <h5><i class="fas fa-search"></i>Research Phase</h5>
+                                <p>Exploration of OCR technologies, medical terminology databases, and image preprocessing techniques</p>
+                            </div>
+                        </div>
+                        <div class="timeline-container right">
+                            <div class="timeline-content">
+                                <h5><i class="fas fa-database"></i>Data Collection</h5>
+                                <p>Gathering of sample prescription images and creation of a medical terminology database</p>
+                            </div>
+                        </div>
+                        <div class="timeline-container left">
+                            <div class="timeline-content">
+                                <h5><i class="fas fa-code"></i>Core Development</h5>
+                                <p>Implementation of image preprocessing, OCR engines, and text analysis algorithms</p>
+                            </div>
+                        </div>
+                        <div class="timeline-container right">
+                            <div class="timeline-content">
+                                <h5><i class="fas fa-brain"></i>Model Training</h5>
+                                <p>Training and fine-tuning of CNN models for character recognition</p>
+                            </div>
+                        </div>
+                        <div class="timeline-container left">
+                            <div class="timeline-content">
+                                <h5><i class="fas fa-laptop"></i>Web Interface</h5>
+                                <p>Development of the Flask web application and user interface</p>
+                            </div>
+                        </div>
+                        <div class="timeline-container right">
+                            <div class="timeline-content">
+                                <h5><i class="fas fa-vial"></i>Testing & Optimization</h5>
+                                <p>Comprehensive testing and performance optimization of the system</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="500">
+                <div class="card-header">Future Enhancements</div>
+                <div class="card-body">
+                    <ul class="future-enhancements">
+                        <li><i class="fas fa-hospital"></i> <div>Integration with electronic health record (EHR) systems</div></li>
+                        <li><i class="fas fa-mobile-alt"></i> <div>Mobile application development for on-the-go prescription scanning</div></li>
+                        <li><i class="fas fa-language"></i> <div>Support for multiple languages and non-Latin scripts</div></li>
+                        <li><i class="fas fa-pills"></i> <div>Drug interaction detection and alerts</div></li>
+                        <li><i class="fas fa-cloud"></i> <div>Cloud-based storage and processing for enhanced scalability</div></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{
+    "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1764492074_pic.jpg",
+    "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1764492074_pic.jpg",
+    "raw_text": "\u201c4.3 | ae LAAN PePotiritsti ris iitis: Hideo\nGALS oo EAU REESARRIRS REARS 01 3 BRASS 2 NS [aeceseaeessseetese esi ttatesss sass cesess SEER\nUS ORLERITEREOMELS Hissssctsssssssssc fH} i TA SHEER TREE Reeeretee eee t)}f\nCAS oH THSSSSRESSSSSS TH SSSR BER EROEE PEPEEEEEAEE (113111) EEE See eee ed #04\nage tt abl Reese! 07)! ARES REESE ae) PT Here Pes eerr rere\n> e |\n.\na a 5 at G\n; eS ~ \u2014 WP\n4 . :\nMETER I PSUR CUT EAT IGE EL LEEAERT ELIT ST op) ae eT OeT FCAT EPCRA ICES on __ 2 =\n\nLES EET ea FO DET er TE ETE AURA Sa EET Poe ata gaa peat g aaa My Fae ct RETRO eS) GATE TELT LG SEES eee ee\nDei: PEE lie eee i He i Hany i i t HUNGER au i AUR RRR Sap\n; bitte riseecererstgey Serre srapesesteg, fidinerastsstar Hit i shite if PERERE EE 333 RRREESES 7 ASSESS:",
+    "cleaned_text": "\u201c4.3 | ae LAAN PePotiritsti ris iitis: Hideo\nvildagliptin oo EAU REESARRIRS REARS 01 3 BRASS 2 NS [aeceseaeessseetese esi ttatesss sass cesess SEER\nUS ORLERITEREOMELS Hissssctsssssssssc fH} i TA SHEER TREE Reeeretee eee t)}f\nCAS oH THSSSSRESSSSSS TH SSSR BER EROEE PEPEEEEEAEE (113111) EEE See eee ed #04\nage tt abl Reese! 07)! ARES REESE ae) PT Here Pes eerr rere\n> e |\n.\na a 5 at G\n; eS ~ \u2014 WP\n4 . :\nmetoprolol I PSUR CUT EAT IGE EL LEEAERT ELIT ST op) ae eT OeT FCAT EPCRA ICES on __ 2 =\n\nLES EET ea FO DET er TE ETE AURA Sa EET by mouth ata gabapentin peat g aaa My Fae ct metronidazole eS) GATE TELT LG SEES eee ee\nDei: PEE lie eee i He i Hany i i t HUNGER au i AUR RRR Sap\n; bitte riseecererstgey Serre srapesesteg, fidinerastsstar Hit i shite if PERERE EE 333 RRREESES 7 ASSESS:",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 87.4,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.8114627864601585,
+    "medical_signal": 0.10144927536231885,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1764492074_pic.jpg",
+    "accuracy": {
+        "overall_accuracy": 87.4,
+        "character_accuracy": 87.4,
+        "word_accuracy": 87.4,
+        "medication_accuracy": 87.4
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Medication 1",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 1,
+    "patient_name": "Aditya ",
+    "doctor_name": "Prachi",
+    "date": "2025-11-30",
+    "user_id": 5,
+    "language_labels": [
+        "English"
+    ]
+}

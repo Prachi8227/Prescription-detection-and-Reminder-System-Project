@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="reminders-wrapper">
+    <div class="reminders-header">
+        <div>
+            <h2>All Prescriptions</h2>
+            <p class="reminders-subtitle">Track every medication reminder in one place.</p>
+        </div>
+        <a href="{{ url_for('add_reminder') }}" class="reminder-action-btn">
+            <span>＋</span> Add Reminder
+        </a>
+    </div>
+
+    {% if reminders %}
+    <div class="reminder-search">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="reminderSearch" placeholder="Search medicines, dosage, frequency or time">
+    </div>
+
+    <div class="reminder-grid" id="reminderGrid">
+        {% for reminder in reminders %}
+        <article class="reminder-card" data-search="{{ reminder.medication }} {{ reminder.dosage }} {{ reminder.frequency }} {{ reminder.time_of_day }} {{ reminder.start_date_display }} {{ reminder.end_date_display }}">
+            <div class="reminder-card-header">
+                <div class="reminder-avatar">
+                    <span>{{ reminder.medication[:1]|upper }}</span>
+                </div>
+                <div class="reminder-card-summary">
+                    <h3>{{ reminder.medication }}</h3>
+                    <p class="reminder-date">{{ reminder.start_date_display }}{% if reminder.end_date and reminder.end_date_display %} · Ends {{ reminder.end_date_display }}{% endif %}</p>
+                </div>
+                <span class="reminder-badge">{{ reminder.frequency }}</span>
+            </div>
+
+            <div class="reminder-details">
+                <div class="detail-chip">
+                    <span class="chip-label">Dosage</span>
+                    <p>{{ reminder.dosage }}</p>
+                </div>
+                <div class="detail-chip">
+                    <span class="chip-label">Time</span>
+                    <p>{{ reminder.time_of_day }}</p>
+                </div>
+                <div class="detail-chip">
+                    <span class="chip-label">Status</span>
+                    <p>{{ reminder.last_notification_sent }}</p>
+                </div>
+            </div>
+
+            <div class="reminder-footer">
+                <div class="reminder-footer-meta">
+                    <span class="footer-label">Treatment window</span>
+                    <strong>{{ reminder.start_date_display }} → {{ reminder.end_date_display }}</strong>
+                </div>
+                <div class="reminder-actions">
+                    <a href="{{ url_for('edit_reminder', reminder_id=reminder.id) }}" class="reminder-action-secondary">Edit</a>
+                    <form action="{{ url_for('delete_reminder', reminder_id=reminder.id) }}" method="POST" onsubmit="return confirm('Delete this reminder?');">
+                        <button type="submit" class="reminder-action-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div id="noResultsMessage" class="no-results" style="display:none;">
+        <p>No reminders match your search.</p>
+    </div>
+    {% else %}
+    <div class="no-reminders">
+        <h3>No reminders yet</h3>
+        <p>Upload a prescription or add a reminder manually to get started.</p>
+        <a href="{{ url_for('add_reminder') }}" class="reminder-action-btn">Create your first reminder</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if reminders %}
+<script>
+    const searchInput = document.getElementById('reminderSearch');
+    const cards = document.querySelectorAll('.reminder-card');
+    const emptyState = document.getElementById('noResultsMessage');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const text = card.getAttribute('data-search').toLowerCase();
+                if (!query || text.includes(query)) {
+                    card.style.display = 'flex';
+                    visibleCount += 1;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (emptyState) {
+                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

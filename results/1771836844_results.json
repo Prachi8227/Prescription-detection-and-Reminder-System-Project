@@ -1,0 +1,120 @@
+{
+    "image_path": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\1771836564_pre1.jpeg",
+    "preprocessed_image": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1771836564_pre1.jpeg",
+    "raw_text": "Zerflox o2, Gut ok cap, Tab Meftalspcs, Andial",
+    "cleaned_text": "zerflox o2, gut ok cap, tab meftalspcs, andial",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 38.33941855043749,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "handwriting",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": true,
+    "handwriting_attempted": true,
+    "text_quality": 0.6455555555555555,
+    "medical_signal": 0.06666666666666667,
+    "ocr_mode": "auto",
+    "structured_prescriptions": [
+        {
+            "name": "Gut Ok",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Meftalspcs",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Meftalspcs",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Meftalspcs",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Zerflox",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Meftalspcs",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Andial",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Meftalspcs",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Zerflox",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Meftalspcs",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Andial",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 11,
+    "preprocessed_url": "/uploads/enhanced_1771836564_pre1.jpeg",
+    "accuracy": {
+        "overall_accuracy": 38.33941855043749,
+        "character_accuracy": 38.33941855043749,
+        "word_accuracy": 38.33941855043749,
+        "medication_accuracy": 38.33941855043749
+    },
+    "patient_name": "Aditya ",
+    "doctor_name": "Prachi",
+    "date": "2026-02-23",
+    "user_id": 5,
+    "language_labels": [
+        "English"
+    ]
+}

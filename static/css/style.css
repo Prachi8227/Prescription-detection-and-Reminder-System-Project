@@ -1,0 +1,661 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding-top: 0;
+    background-color: #b8f8dc;
+    /* background-image: url('/static/img.jpeg'); */
+    background-size: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.glass-button {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Lighter border */
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    -webkit-backdrop-filter: blur(10px); /* Safari support */
+    border-radius: 10px; /* Rounded corners */
+    padding: 10px 20px; /* Adjust padding as needed */
+    color: black; /* Black text */
+    font-weight: bold; /* Bold text */
+    text-decoration: none; /* Remove underline for links */
+    transition: all 0.3s ease; /* Smooth transitions */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.glass-button:hover {
+    /* Slightly more opaque on hover */
+    background-color: rgb(35, 243, 94);
+    border-color: rgba(255, 255, 255, 0.6); /* More visible border on hover */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+   
+}
+
+header {
+    background-color: #198754;
+    color: #fff;
+    padding: 12px 20px;
+    position: relative;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.helpline-links {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.helpline-link {
+    color: #fef3c7;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.helpline-link:hover {
+    text-decoration: underline;
+}
+
+.language-selector {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+}
+
+.language-selector select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    color: #000;
+    cursor: pointer;
+}
+
+.language-selector select:focus {
+    outline: none;
+    border-color: #00DBDE;
+    box-shadow: 0 0 6px rgba(0, 219, 222, 0.6);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.language-selector select option {
+    color: #000;
+}
+
+@media (max-width: 600px) {
+    .language-selector {
+        position: static;
+        margin-top: 12px;
+    }
+
+    .language-selector select {
+        width: 100%;
+    }
+}
+
+.goog-logo-link {
+    display: none !important;
+}
+
+.goog-te-gadget {
+    color: transparent !important;
+}
+
+.goog-te-gadget .goog-te-gadget-icon {
+    display: none !important;
+}
+
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+body {
+    top: 0 !important;
+}
+main {
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+    margin-top: 20px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.15); /* semi-transparent */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* soft shadow */
+    backdrop-filter: blur(10px); /* frosted glass blur */
+    -webkit-backdrop-filter: blur(10px); /* Safari support */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* subtle border for definition */
+}
+
+main:hover {
+    background: rgba(255, 255, 255, 0.25); /* slightly more visible on hover */
+    transform: translateY(-2px); /* slight lift effect */
+    box-shadow: 0 6px 35px rgba(0, 0, 0, 0.2); /* deeper shadow on hover */
+}
+input[type=text], input[type=password], input[type=email] ,i{
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+/* Centered Register Button */
+button.btn.btn-primary.btn-block {
+    display: block;
+    width: 50%;
+    margin: 20px auto; /* centers the button horizontally */
+    background-color: #28a745;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.25);
+    text-align: center;
+  }
+  
+  /* Hover effect */
+  button.btn.btn-primary.btn-block:hover {
+    background-color: #218838;
+    box-shadow: 0 6px 12px rgba(33, 136, 56, 0.35);
+    transform: translateY(-2px);
+  }
+  
+  /* Click effect */
+  button.btn.btn-primary.btn-block:active {
+    background-color: #1e7e34;
+    transform: translateY(0);
+  }
+  
+  /* Optional: success & error message styling */
+  .flash {
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+  
+  .flash.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .flash.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  
+.form-group label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  
+/* New styles for form inputs for a glass effect */
+.form-control {
+    background: rgba(255, 255, 255, 0.1); /* Lighter semi-transparent */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Softer border */
+    backdrop-filter: blur(5px); /* Gentle blur */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: #333; /* Darker text for readability */
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus {
+    border-color: rgba(108, 99, 255, 0.6); /* Highlight color */
+    box-shadow: 0 0 8px rgba(108, 99, 255, 0.4); /* Subtle glow */
+    outline: none;
+}
+
+/* Adjust existing form-control and gender dropdown to use new glass effect */
+/* Dropdown styling */
+#gender.form-control, .form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.8px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333;
+  background: rgba(255, 255, 255, 0.1);
+  transition: 0.3s ease;
+  outline: none;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Hover and focus effects */
+#gender.form-control:hover, .form-control:hover {
+  border-color: rgba(108, 99, 255, 0.6);
+}
+
+#gender.form-control:focus, .form-control:focus {
+  border-color: rgba(108, 99, 255, 0.6);
+  box-shadow: 0 0 8px rgba(108, 99, 255, 0.4);
+}
+
+/* Option styling */
+#gender option {
+    padding: 10px;
+  }
+
+/* Add some subtle animation when focused */
+@keyframes glow {
+    from {
+      box-shadow: 0 0 5px rgba(108, 99, 255, 0.2);
+    }
+    to {
+      box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+    }
+  }
+
+  /* Import modern Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+/* Body styling to center content */
+
+  
+  /* Page heading */
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 26px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+/* Table styling enhancements for glass effect */
+table {
+    width: 90%;
+    max-width: 1200px;
+    border-collapse: separate; /* Use separate to allow border-radius on cells */
+    border-spacing: 0;
+    background: rgba(255, 255, 255, 0.1); /* Light glass background */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    backdrop-filter: blur(10px); /* Frosted glass blur */
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px; /* More rounded corners for the table */
+    overflow: hidden; /* Ensures content respects border-radius */
+    margin: 0 auto 30px auto; /* Centering with more bottom margin */
+}
+
+thead {
+    background: rgba(108, 99, 255, 0.7); /* Slightly darker glass for header */
+    color: black; /* Black text for header for better contrast */
+    font-weight: bold;
+}
+
+thead th {
+    padding: 15px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+tbody tr {
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.15); /* Slightly more opaque on hover */
+    transform: translateY(-1px); /* Subtle lift */
+}
+
+tbody td {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Lighter separator */
+    font-size: 14px;
+    color: #333; /* Dark text for content */
+}
+
+tbody tr:last-child td {
+    border-bottom: none; /* No border for the last row */
+}
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary {
+    background-color: #6c63ff;
+    color: #fff;
+  }
+  /* Add space between Update and Delete buttons */
+/* Add gap between Update and Delete buttons */
+td .btn-primary {
+    margin-bottom: 10px; /* vertical spacing if stacked */
+    margin-right: 8px;  /* horizontal spacing if inline */
+}
+
+/* Optional: center buttons inside the cell */
+td {
+    text-align: center;
+}
+
+  
+  
+  .btn-primary:hover {
+    background-color: #5952e0;
+  }
+  
+  .btn-danger {
+    background-color: #e74c3c;
+    color: #fff;
+  }
+  
+  .btn-danger:hover {
+    background-color: #c0392b;
+  }
+  
+/* Reminder dashboard */
+.reminders-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.reminders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.reminders-subtitle {
+    margin: 8px 0 0 0;
+    color: #5f6368;
+    font-size: 0.95rem;
+}
+
+.reminder-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #00dbde 0%, #fc00ff 100%);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 12px 30px rgba(0, 219, 222, 0.25);
+}
+
+.reminder-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(0, 219, 222, 0.35);
+}
+
+.reminder-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(12px);
+}
+
+.reminder-search input {
+    border: none;
+    flex: 1;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #1f1f1f;
+    outline: none;
+}
+
+.reminder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.reminder-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(0, 219, 222, 0.15) 0%, rgba(252, 0, 255, 0.1) 100%);
+    box-shadow: 0 18px 40px -20px rgba(31, 38, 135, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.reminder-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    filter: blur(0.5px);
+}
+
+.reminder-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.reminder-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #00dbde, #007c32);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 20px rgba(0, 219, 222, 0.35);
+}
+
+.reminder-card-summary h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #202124;
+}
+
+.reminder-date {
+    margin: 4px 0 0 0;
+    color: #5f6368;
+    font-size: 0.85rem;
+}
+
+.reminder-badge {
+    margin-left: auto;
+    background: rgba(0, 219, 222, 0.15);
+    color: #00796b;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.reminder-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.detail-chip {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+.chip-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.detail-chip p {
+    margin: 0;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.reminder-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+.reminder-footer-meta .footer-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.reminder-footer-meta strong {
+    color: #1f2937;
+}
+
+.reminder-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.reminder-action-secondary,
+.reminder-action-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.reminder-action-secondary {
+    background: rgba(255, 255, 255, 0.6);
+    color: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.reminder-action-secondary:hover {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.reminder-action-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.reminder-action-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.no-reminders,
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(10px);
+}
+
+.no-reminders h3 {
+    margin-bottom: 12px;
+    color: #1f2937;
+}
+
+.no-reminders p {
+    margin-bottom: 18px;
+    color: #6b7280;
+}
+
+@media (max-width: 640px) {
+    .reminders-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .reminder-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .reminder-actions {
+        width: 100%;
+    }
+
+    .reminder-action-secondary,
+    .reminder-action-danger {
+        flex: 1;
+        justify-content: center;
+    }
+}
+

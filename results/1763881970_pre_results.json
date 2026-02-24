@@ -1,0 +1,23 @@
+{
+    "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1763881970_pre.jpg",
+    "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1763881970_pre.jpg",
+    "raw_text": "re Wegener esate cn cic ye pues Sr\nSe Cl\nERASERS IRE Un rn FOUN SHER eT\nacl Bete aig a6 Bie\nsa Bei\nSAR . BESTE rs:\nRNG iiszEz Ses ds\nNY sO Bese\nfy : q are sents\nA \\ ese\nfpaseptes . petfecsell:\npeated Vy 7 iY Hsopeeter?\nHea - XO ase eaeiesett\nAa Aan: SHA CWAR Bee\n=o ns ae\nPE aes \u2014\u2014 attra err PUES ae aac SNAICC\nppcregt PIPE tereensag ot errr ns NE Ua EER SS SEE\nee Sut HAT AEE PRT AU ATE PEGE ones ASH\nee SA HCE PHI BEN Gs) UNE Su ee\na pi gnyadl| BAU U TA TTH RS HE CAHIERS\nST BRN HATE EU BE PUAN AE Nta ireeeces eee HERAT AKER\nee IEE Sak SES IEEE SUSU\nhte sea HHT PHSB RIE BH aTs ARIE RUC RSIS\na Gt Pe Ea TH TH TIA LESTE G GS BSI\n7 Hae ATER SUA ET SPRE af PEE Sete Lee USA AN Re\nUE UN Re Hu i HE RUB AURA AA AES USSG?\nSree eure ree eS ond SHES Riaey atu sanetrce\n8 Bees ae ie\neee ee ae peas",
+    "cleaned_text": "re Wegener esate cn cic ye pues Sr\nSe Cl\nERASERS IRE Un rn FOUN SHER eT\nwith food Bete aig a6 Bie\nsa Bei\nSAR . BESTE rs:\nRNG iiszEz Ses ds\nNY sO Bese\nfy : q are sents\nA \\ ese\nfpaseptes . petfecsell:\npeated Vy 7 iY Hsopeeter?\nHea - XO ase eaeiesett\nAa Aan: SHA CWAR Bee\n=o ns ae\nPE aes \u2014\u2014 attra err PUES ae with food SNAICC\nppcregt PIPE tereensag ot errr ns NE Ua EER SS SEE\nee Sut HAT azithromycin PRT AU ATE pregabalin ones ASH\nee SA HCE PHI BEN Gs) UNE Su ee\na pi gnyadl| BAU U TA TTH RS HE CAHIERS\nST BRN HATE EU BE PUAN AE Nta ireeeces eee HERAT AKER\nee IEE Sak SES IEEE SUSU\nhte sea HHT PHSB RIE BH aTs ARIE RUC RSIS\na Gt Pe Ea TH TH TIA LESTE G GS BSI\n7 Hae ATER SUA ET SPRE af PEE Sete Lee USA AN Re\nUE UN Re Hu i HE RUB AURA AA AES USSG?\nSree eure ree eS once daily SHES Riaey atu sanetrce\n8 Bees ae ie\neee ee ae peas",
+    "medications": [
+        "pregabalin",
+        "azithromycin"
+    ],
+    "dosages": [],
+    "frequencies": [
+        "once daily"
+    ],
+    "routes": [],
+    "confidence": 89.8,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.823309017895171
+}

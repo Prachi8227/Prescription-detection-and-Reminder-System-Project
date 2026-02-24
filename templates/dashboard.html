@@ -1,0 +1,425 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h2>Welcome, {{ username }}!</h2>
+
+<div class="quick-actions">
+    <a href="{{ url_for('ocr_upload') }}" class="glass-button">Prescription Scanner</a>
+    <a href="{{ url_for('reminders') }}" class="glass-button">Reminders</a>
+    <a href="{{ url_for('nearby') }}" class="glass-button">📍 Nearby Locations</a>
+</div>
+
+<!-- Map Container -->
+<div class="map-container" id="mapContainer">
+    <div id="map" style="height: 500px; width: 100%; border-radius: 15px; z-index: 1;"></div>
+    <div class="map-loading" id="mapLoading">
+        <p>Getting your location...</p>
+    </div>
+    <div class="map-error" id="mapError" style="display: none;">
+        <p>Unable to get your location. Please enable location services.</p>
+    </div>
+</div>
+
+<!-- Places List -->
+<div class="places-list-container" id="placesList">
+    <h3>Nearby Places</h3>
+    <div class="places-tabs">
+        <button class="tab-btn active" onclick="filterPlaces('all')">All</button>
+        <button class="tab-btn" onclick="filterPlaces('hospital')">Hospitals</button>
+        <button class="tab-btn" onclick="filterPlaces('pharmacy')">Pharmacies</button>
+    </div>
+    <div id="placesContent" class="places-content">
+        <p class="loading-text">Loading nearby places...</p>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Custom Map Styles -->
+<style>
+    .map-container {
+        margin: 20px 0;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    #map {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+    }
+
+    .map-loading, .map-error {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px 30px;
+        border-radius: 10px;
+        z-index: 1000;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .places-list-container {
+        margin: 20px 0;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .places-list-container h3 {
+        margin-top: 0;
+        color: #333;
+        text-align: center;
+    }
+
+    .places-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: center;
+    }
+
+    .tab-btn {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        color: #333;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .tab-btn:hover, .tab-btn.active {
+        background: rgba(35, 243, 94, 0.6);
+        border-color: rgba(35, 243, 94, 0.8);
+        transform: translateY(-2px);
+    }
+
+    .places-content {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .place-item {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .place-item:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateX(5px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .place-item.hidden {
+        display: none;
+    }
+
+    .place-name {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .place-type {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .place-type.hospital {
+        background: rgba(220, 53, 69, 0.3);
+        color: #c0392b;
+    }
+
+    .place-type.pharmacy {
+        background: rgba(40, 167, 69, 0.3);
+        color: #218838;
+    }
+
+    .place-address {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .place-distance {
+        color: #888;
+        font-size: 12px;
+    }
+
+    .loading-text {
+        text-align: center;
+        color: #666;
+        padding: 20px;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    .quick-actions .glass-button {
+        min-width: 200px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .map-container {
+            padding: 10px;
+        }
+
+        #map {
+            height: 400px;
+        }
+
+        .places-tabs {
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+        }
+
+        .quick-actions .glass-button {
+            width: 100%;
+        }
+    }
+
+    /* Custom marker icons */
+    .marker-hospital {
+        background-color: #dc3545;
+        width: 30px;
+        height: 30px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .marker-pharmacy {
+        background-color: #28a745;
+        width: 30px;
+        height: 30px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .marker-hospital::after,
+    .marker-pharmacy::after {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: white;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+</style>
+
+<script>
+let map;
+let userLocation = null;
+let places = [];
+let markers = [];
+
+// Initialize map
+function initMap() {
+    // Create map centered on a default location (will be updated with user location)
+    map = L.map('map').setView([20.5937, 78.9629], 10); // Default to India center
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Get user location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Center map on user location
+                map.setView([userLocation.lat, userLocation.lng], 13);
+                
+                // Add user location marker
+                const userIcon = L.divIcon({
+                    className: 'user-marker',
+                    html: '<div style="background-color: #007bff; width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                    iconSize: [25, 25],
+                    iconAnchor: [12, 12]
+                });
+                
+                L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+                    .addTo(map)
+                    .bindPopup('<b>Your Location</b>').openPopup();
+                
+                // Hide loading, show map
+                document.getElementById('mapLoading').style.display = 'none';
+                
+                // Fetch nearby places
+                fetchNearbyPlaces();
+            },
+            error => {
+                console.error('Geolocation error:', error);
+                document.getElementById('mapLoading').style.display = 'none';
+                document.getElementById('mapError').style.display = 'block';
+            }
+        );
+    } else {
+        document.getElementById('mapLoading').style.display = 'none';
+        document.getElementById('mapError').style.display = 'block';
+    }
+}
+
+// Fetch nearby hospitals and pharmacies
+async function fetchNearbyPlaces() {
+    if (!userLocation) return;
+    
+    const radius = 5000; // 5km radius
+    const placesContent = document.getElementById('placesContent');
+    placesContent.innerHTML = '<p class="loading-text">Searching for nearby places...</p>';
+    
+    try {
+        // Fetch hospitals
+        const hospitalResponse = await fetch(`{{ url_for('get_nearby_places') }}?lat=${userLocation.lat}&lng=${userLocation.lng}&type=hospital&radius=${radius}`);
+        const hospitals = await hospitalResponse.json();
+        
+        // Fetch pharmacies
+        const pharmacyResponse = await fetch(`{{ url_for('get_nearby_places') }}?lat=${userLocation.lat}&lng=${userLocation.lng}&type=pharmacy&radius=${radius}`);
+        const pharmacies = await pharmacyResponse.json();
+        
+        // Combine and sort by distance
+        places = [
+            ...hospitals.map(h => ({...h, type: 'hospital'})),
+            ...pharmacies.map(p => ({...p, type: 'pharmacy'}))
+        ].sort((a, b) => (a.distance || 0) - (b.distance || 0));
+        
+        // Display places
+        displayPlaces();
+        addMarkersToMap();
+        
+    } catch (error) {
+        console.error('Error fetching places:', error);
+        placesContent.innerHTML = '<p class="loading-text" style="color: #dc3545;">Error loading nearby places. Please try again.</p>';
+    }
+}
+
+// Display places in the list
+function displayPlaces() {
+    const placesContent = document.getElementById('placesContent');
+    
+    if (places.length === 0) {
+        placesContent.innerHTML = '<p class="loading-text">No nearby places found.</p>';
+        return;
+    }
+    
+    placesContent.innerHTML = places.map(place => `
+        <div class="place-item" data-type="${place.type}" onclick="focusOnPlace(${place.lat}, ${place.lng}, '${place.name.replace(/'/g, "\\'")}')">
+            <div class="place-name">${place.name || 'Unnamed Place'}</div>
+            <span class="place-type ${place.type}">${place.type === 'hospital' ? '🏥 Hospital' : '💊 Pharmacy'}</span>
+            <div class="place-address">${place.address || 'Address not available'}</div>
+            ${place.distance ? `<div class="place-distance">📍 ${place.distance.toFixed(1)} km away</div>` : ''}
+        </div>
+    `).join('');
+}
+
+// Add markers to map
+function addMarkersToMap() {
+    // Clear existing markers
+    markers.forEach(marker => map.removeLayer(marker));
+    markers = [];
+    
+    places.forEach(place => {
+        const iconColor = place.type === 'hospital' ? '#dc3545' : '#28a745';
+        const icon = L.divIcon({
+            className: `marker-${place.type}`,
+            html: `<div style="background-color: ${iconColor}; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); position: relative;">
+                <div style="position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);"></div>
+            </div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 30]
+        });
+        
+        const marker = L.marker([place.lat, place.lng], { icon: icon })
+            .addTo(map)
+            .bindPopup(`<b>${place.name || 'Unnamed Place'}</b><br>${place.type === 'hospital' ? '🏥 Hospital' : '💊 Pharmacy'}<br>${place.address || ''}`);
+        
+        markers.push(marker);
+    });
+}
+
+// Focus on a specific place
+function focusOnPlace(lat, lng, name) {
+    map.setView([lat, lng], 16);
+    markers.forEach(marker => {
+        if (marker.getLatLng().lat === lat && marker.getLatLng().lng === lng) {
+            marker.openPopup();
+        }
+    });
+}
+
+// Filter places by type
+function filterPlaces(type) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Show/hide places
+    document.querySelectorAll('.place-item').forEach(item => {
+        if (type === 'all' || item.dataset.type === type) {
+            item.classList.remove('hidden');
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+}
+
+// Initialize map when page loads
+window.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

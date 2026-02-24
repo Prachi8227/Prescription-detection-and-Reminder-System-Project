@@ -1,0 +1,68 @@
+{
+    "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1763882237_pre2.jpg",
+    "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1763882237_pre2.jpg",
+    "raw_text": "Pia\nAES SOF o Bly,\n7 tS Lo ayy Le Bea\nSe. Bees Ba aay Does ny py Ly enithy Hee ae Mi\nau Pee a ie 7 ee pe Le\neae ate se as SE HM  .\nes 3 vet - ee\nie ey Ae HOA \" bee\n=o Ag 7 oer 3 , \\ ot See ee\nee EEA a : nV \u2019 ae\ndet) Baty MY AEE MAUS ise es hed Bay nS By ee bie oh eS\nes Tee ty eG Baas an Bey a Ae\nie Fe SH i res We tse Fy MY; i}\nPinon ae eh a _ 24\nRah aaa fate ais ay es gat\nee Sa ey Lew eh\na Disks\nsaith oy ao Be\ntive. t aa",
+    "cleaned_text": "Pia\nAES SOF o Bly,\n7 tS Lo ayy Le betahistine\nSe. Bees Ba aay Does ny py Ly enithy Hee ae Mi\nau Pee a ie 7 ee pe Le\neae ate se as SE HM  .\nes 3 vet - ee\nie ey Ae HOA \" bee\n=o Ag 7 oer 3 , \\ ot See ee\nee EEA a : nV \u2019 ae\ndet) Baty MY azithromycin MAUS nimesulide es hed Bay nS By ee bie oh eS\nes Tee ty eG Baas an Bey a Ae\nie Fe SH i res We tse Fy MY; i}\nPinon ae eh a _ 24\nRah aaa folic acid ais ay es gat\nee Sa ey Lew eh\na Disks\nazithromycin oy ao Be\ntive. t aa",
+    "medications": [
+        "folic acid",
+        "betahistine",
+        "nimesulide",
+        "azithromycin"
+    ],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 88.00000000000001,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.7500591016548463,
+    "preprocessed_url": "/uploads/enhanced_1763882237_pre2.jpg",
+    "accuracy": {
+        "overall_accuracy": 88.00000000000001,
+        "character_accuracy": 88.00000000000001,
+        "word_accuracy": 88.00000000000001,
+        "medication_accuracy": 88.00000000000001
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Folic Acid",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Betahistine",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Nimesulide",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Azithromycin",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 4,
+    "patient_name": "Aditya YAdav",
+    "doctor_name": "Rahul Ade",
+    "date": "2025-11-23",
+    "user_id": 5,
+    "language_labels": [
+        "English"
+    ]
+}

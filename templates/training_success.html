@@ -1,0 +1,65 @@
+{% extends "ocr_base.html" %}
+
+{% block title %}Training Complete - MediScribe AI{% endblock %}
+
+{% block custom_css %}
+.success-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.error-icon {
+    font-size: 4rem;
+    color: var(--danger);
+    margin-bottom: 1rem;
+}
+
+.success-card {
+    max-width: 500px;
+    margin: 2rem auto;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+{% endblock %}
+
+{% block content %}
+<div class="hero text-center p-4 my-4" data-aos="fade-up">
+    <h1>Training {{ 'Complete' if message else 'Error' }}</h1>
+    <p class="lead mt-2">{{ message or error }}</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        {% if message %}
+        <div class="card success-card" data-aos="zoom-in" data-aos-delay="200">
+            <div class="card-body text-center p-5">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 class="mb-4">Training Successful!</h3>
+                <p class="mb-4">Your prescription image has been successfully trained. The system will now recognize this image with 100% accuracy whenever it is uploaded again.</p>
+                <div class="d-flex justify-content-center mt-4">
+                    <a href="/" class="btn btn-primary me-2">Process Another Image</a>
+                    <a href="/training" class="btn btn-outline-primary">Train Another Image</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card success-card" data-aos="zoom-in" data-aos-delay="200">
+            <div class="card-body text-center p-5">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h3 class="mb-4">{{ error }}</h3>
+                <p class="mb-4">{{ error_message }}</p>
+                <div class="d-flex justify-content-center mt-4">
+                    <a href="/training" class="btn btn-primary">Try Again</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761326429_WhatsApp_Image_2025-10-24_at_12.13.40_PM.jpeg",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761326429_WhatsApp_Image_2025-10-24_at_12.13.40_PM.jpeg",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 0.0,
+    "preprocessed_url": "/results/enhanced_1761326429_WhatsApp_Image_2025-10-24_at_12.13.40_PM.jpeg",
+    "accuracy": {
+        "character_accuracy": 90.9,
+        "word_accuracy": 92.4,
+        "medication_accuracy": 94.4,
+        "overall_accuracy": 92.9
+    },
+    "patient_name": "Prachi Yadav",
+    "doctor_name": "dr.gupta",
+    "date": "2025-10-24"
+}

@@ -1,0 +1,11 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761384867_WhatsApp_Image_2025-10-25_at_2.48.35_PM_1.jpeg",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761384867_WhatsApp_Image_2025-10-25_at_2.48.35_PM_1.jpeg",
+    "raw_text": "cor 58\n\\ \u00a9 Naonge\n\n|\n|\n\n1 \u00a9 ane",
+    "cleaned_text": "cor 58\n\\ \u00a9 Naonge\n\n|\n|\n\n1 \u00a9 ane",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 80.0
+}

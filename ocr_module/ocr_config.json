@@ -1,0 +1,7 @@
+{
+  "mode": "auto",
+  "quality_threshold": 0.6,
+  "medical_signal_threshold": 0.08,
+  "selection_margin": 0.05,
+  "min_score": 0.45
+}

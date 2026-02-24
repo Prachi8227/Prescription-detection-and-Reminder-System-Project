@@ -1,0 +1,50 @@
+{
+    "image_path": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\1771755061_download_2.jpg",
+    "preprocessed_image": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1771755061_download_2.jpg",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 50.0,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": true,
+    "paddleocr_used": false,
+    "handwriting_attempted": true,
+    "handwriting_detected": false,
+    "text_quality": 0.0,
+    "medical_signal": 0.0,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1771755061_download_2.jpg",
+    "accuracy": {
+        "overall_accuracy": 50.0,
+        "character_accuracy": 50.0,
+        "word_accuracy": 50.0,
+        "medication_accuracy": 50.0
+    },
+    "structured_prescriptions": [
+        {
+            "name": "No medications detected",
+            "dosage": "N/A",
+            "frequency": "N/A",
+            "duration": "N/A",
+            "instruction": "N/A"
+        }
+    ],
+    "medication_count": 1,
+    "patient_name": "Aditya Yadav",
+    "doctor_name": "Prachi",
+    "date": "2026-02-22",
+    "user_id": 1,
+    "language_labels": [
+        "English"
+    ]
+}

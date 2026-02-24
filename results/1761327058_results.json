@@ -1,0 +1,21 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761327058_Prescription_Rohan_Sharma.png",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761327058_Prescription_Rohan_Sharma.png",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 0.0,
+    "preprocessed_url": "/results/enhanced_1761327058_Prescription_Rohan_Sharma.png",
+    "accuracy": {
+        "overall_accuracy": 0.0,
+        "character_accuracy": 0.0,
+        "word_accuracy": 0.0,
+        "medication_accuracy": 0.0
+    },
+    "patient_name": "Prachi Yadav",
+    "doctor_name": "dr.gupta",
+    "date": "2025-10-24"
+}

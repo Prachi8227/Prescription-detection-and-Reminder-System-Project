@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mediscribe App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <h1>Mediscribe App</h1>
+        <form id="language-select-form" class="language-selector" action="{{ url_for('set_language') }}" method="post">
+            <label for="language" class="visually-hidden">Select language</label>
+            <select name="language" id="language" onchange="this.form.submit()">
+                {% for code, meta in ui_languages.items() %}
+                <option value="{{ code }}" {% if code == current_language_code %}selected{% endif %}>{{ meta.label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        <div class="helpline-links">
+            <a href="tel:18005728283" class="helpline-link">
+                📞 Doctor Helpline: 1800 572 8283
+            </a>
+            <a href="tel:108" class="helpline-link">
+                🚑 Emergency: 108
+            </a>
+            <a href="tel:104" class="helpline-link">
+                💬 Health Advice: 104
+            </a>
+        </div>
+        <div id="google_translate_element" class="translate-widget" style="display:none;"></div>
+        {% if session.get('username') %}
+            <p>Logged in as: {{ session.get('username') }} | <a href="{{ url_for('logout') }}" class="glass-button">Logout</a></p>
+        {% endif %}
+    </header>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <script type="text/javascript">
+    const defaultUiLanguage = '{{ default_ui_language }}';
+    const currentUiLanguage = '{{ current_language_code }}';
+
+    function setTranslateCookie(value) {
+        const date = new Date();
+        date.setTime(date.getTime() + (365*24*60*60*1000));
+        const expires = ';expires=' + date.toUTCString();
+        document.cookie = 'googtrans=' + value + expires + ';path=/';
+        document.cookie = 'googtrans=' + value + expires + ';path=/;domain=' + window.location.hostname;
+    }
+
+    function clearTranslateCookie() {
+        document.cookie = 'googtrans=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
+        document.cookie = 'googtrans=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;domain=' + window.location.hostname + ';';
+    }
+
+    (function initializePreferredLanguage() {
+        if (currentUiLanguage && currentUiLanguage !== defaultUiLanguage) {
+            const translationPath = '/' + defaultUiLanguage + '/' + currentUiLanguage;
+            setTranslateCookie(translationPath);
+        } else {
+            clearTranslateCookie();
+        }
+    })();
+
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: defaultUiLanguage,
+            includedLanguages: "{{ ui_language_codes|join(',') }}",
+            autoDisplay: false
+        }, 'google_translate_element');
+
+        if (currentUiLanguage && currentUiLanguage !== defaultUiLanguage) {
+            const selects = document.querySelectorAll('select.goog-te-combo');
+            selects.forEach(function(select) {
+                select.value = currentUiLanguage;
+                select.dispatchEvent(new Event('change'));
+            });
+        }
+    }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

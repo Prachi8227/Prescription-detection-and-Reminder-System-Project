@@ -1,0 +1,1163 @@
+{% extends "ocr_base.html" %}
+
+{% block title %}MediScribe AI - Where Handwriting Meets Healthcare Intelligence{% endblock %}
+
+{% block custom_css %}
+/* Animated gradient background - matching reference demo style */
+body {
+    background: linear-gradient(90deg, #00DBDE 0%, #FC00FF 100%);
+    background-size: 200% 200%;
+    animation: gradientAnimation 5s ease infinite;
+}
+
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.content-wrapper {
+    background-color: rgba(255, 255, 255, 0.92);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.drop-container {
+    border: 2px dashed #00DBDE;
+    border-radius: 12px;
+    padding: 2.5rem;
+    text-align: center;
+    background-color: rgba(0, 219, 222, 0.1);
+    transition: all 0.4s;
+    position: relative;
+    cursor: pointer;
+}
+
+.drop-container:hover {
+    background-color: rgba(0, 219, 222, 0.2);
+    border-color: #FC00FF;
+    transform: scale(1.01);
+}
+
+.upload-icon {
+    font-size: 3.5rem;
+    color: #00DBDE;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.upload-icon.pulse {
+    animation: pulse-icon 2s infinite;
+}
+
+@keyframes pulse-icon {
+    0% { transform: scale(1); opacity: 1; color: #00DBDE; }
+    50% { transform: scale(1.1); opacity: 0.8; color: #FC00FF; }
+    100% { transform: scale(1); opacity: 1; color: #00DBDE; }
+}
+
+#preview {
+    max-width: 100%;
+    max-height: 340px;
+    border-radius: 10px;
+    margin-top: 1rem;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#preview:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.8rem;
+    margin-top: 3rem;
+}
+
+.feature-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 1.8rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.4s, box-shadow 0.4s;
+    cursor: pointer;
+    border-bottom: 4px solid transparent;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1);
+    border-bottom: 4px solid #FC00FF;
+}
+
+.feature-icon {
+    font-size: 2.2rem;
+    color: #00DBDE;
+    margin-bottom: 1.2rem;
+    display: inline-block;
+    background-color: rgba(0, 219, 222, 0.1);
+    padding: 1.2rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    background-color: #FC00FF;
+    color: white;
+    transform: rotate(10deg);
+}
+
+.file-info {
+    font-size: 0.95rem;
+    color: var(--gray);
+    margin-top: 0.8rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 219, 222, 0.05);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.progress-container {
+    width: 100%;
+    margin-top: 1.2rem;
+    display: none;
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 10px;
+    border-radius: 10px;
+    background: linear-gradient(to right, #00DBDE, #FC00FF);
+    width: 0;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 219, 222, 0.5);
+}
+
+#camera-container {
+    display: none;
+    margin-top: 1.5rem;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.02);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+#camera-view {
+    max-width: 100%;
+    max-height: 450px;
+    border-radius: 10px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.camera-controls {
+    margin-top: 1.2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+}
+
+.patient-info {
+    margin-top: 2rem;
+    border-top: 1px solid var(--gray-light);
+    padding-top: 2rem;
+    animation: fadeIn 0.8s ease;
+}
+
+.prescription-details {
+    margin-top: 1.8rem;
+    animation: fadeIn 0.8s ease;
+}
+
+/* Step indicator */
+.steps-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.steps-container::before {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--gray-light);
+    z-index: 1;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.step-number {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid var(--gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.step-text {
+    font-size: 0.85rem;
+    color: var(--gray);
+    text-align: center;
+    max-width: 100px;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+    background-color: #FC00FF;
+    border-color: #FC00FF;
+    color: white;
+    box-shadow: 0 0 10px rgba(252, 0, 255, 0.5);
+}
+
+.step.active .step-text {
+    color: #FC00FF;
+    font-weight: 600;
+}
+
+.step.completed .step-number {
+    background-color: #00DBDE;
+    border-color: #00DBDE;
+    color: white;
+}
+
+/* New section styles */
+.demo-section {
+    margin-top: 5rem;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, rgba(0, 219, 222, 0.1) 0%, rgba(252, 0, 255, 0.1) 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.1);
+}
+
+.demo-carousel {
+    margin-top: 2rem;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.testimonials {
+    margin-top: 4rem;
+    padding: 2rem 0;
+}
+
+.testimonial-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+    margin: 1rem;
+    position: relative;
+}
+
+.testimonial-card::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    font-size: 6rem;
+    color: rgba(59, 130, 246, 0.1);
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 240px;
+    background-color: var(--dark);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    position: absolute;
+    z-index: 100;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    font-size: 0.85rem;
+}
+
+.tooltip-container:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid var(--gray-light);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.language-select {
+    min-height: 160px;
+}
+
+.language-hint {
+    font-size: 0.85rem;
+}
+
+.advanced-options {
+    margin-top: 1rem;
+    display: none;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.toggle-advanced {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.toggle-advanced:hover {
+    text-decoration: underline;
+}
+
+/* Workflow demo section styling */
+.workflow-steps {
+    position: relative;
+}
+
+.workflow-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 1.8rem;
+    height: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+}
+
+.workflow-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1);
+}
+
+.workflow-card[data-step="1"]:hover {
+    border-bottom: 3px solid #00DBDE;
+}
+
+.workflow-card[data-step="2"]:hover {
+    border-bottom: 3px solid #FC00FF;
+}
+
+.workflow-card[data-step="3"]:hover {
+    border-bottom: 3px solid #00DBDE;
+}
+
+.workflow-card[data-step="4"]:hover {
+    border-bottom: 3px solid #FC00FF;
+}
+
+.workflow-icon {
+    font-size: 2rem;
+    width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-bottom: 1.2rem;
+    transition: all 0.3s ease;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+}
+
+.workflow-card[data-step="1"] .workflow-icon {
+    background-color: rgba(0, 219, 222, 0.1);
+    color: #00DBDE;
+}
+
+.workflow-card[data-step="2"] .workflow-icon {
+    background-color: rgba(252, 0, 255, 0.1);
+    color: #FC00FF;
+}
+
+.workflow-card[data-step="3"] .workflow-icon {
+    background-color: rgba(0, 219, 222, 0.1);
+    color: #00DBDE;
+}
+
+.workflow-card[data-step="4"] .workflow-icon {
+    background-color: rgba(252, 0, 255, 0.1);
+    color: #FC00FF;
+}
+
+.workflow-card:hover .workflow-icon {
+    transform: scale(1.1) rotate(10deg);
+}
+
+.workflow-demo {
+    margin-top: 3rem;
+    position: relative;
+}
+
+.workflow-demo-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.workflow-screen {
+    display: none;
+    position: relative;
+}
+
+.workflow-screen.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+.workflow-caption {
+    padding: 1.5rem;
+    background-color: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.workflow-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.workflow-nav button {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.workflow-nav button:hover {
+    transform: translateY(-3px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Loading overlay styles */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #FC00FF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    margin-top: 1rem;
+    color: #00DBDE;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+{% endblock %}
+
+{% block content %}
+<!-- Add loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Processing prescription...</div>
+</div>
+
+<div class="hero text-center p-5 my-4 fade-in" data-aos="fade-up">
+    <h1 class="text-dark">Where Handwriting Meets Healthcare Intelligence</h1>
+    <p class="lead mt-3 text-dark">Upload a doctor's handwritten prescription and MediScribe AI will interpret it in seconds</p>
+    <div class="mt-4">
+        <a href="#upload-section" class="btn btn-lg me-2" style="background-color: #00DBDE; color: white;">
+            <i class="fas fa-upload me-2"></i>Get Started
+        </a>
+        <a href="#demo-section" class="btn btn-outline-dark">
+            <i class="fas fa-play-circle me-2"></i>See How It Works
+        </a>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <div class="row">
+        <div class="col-lg-10 mx-auto" id="upload-section">
+            <div class="steps-container">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Upload Prescription</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Add Patient Info</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Process Results</div>
+                </div>
+            </div>
+            
+            <div class="card mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Upload Prescription</span>
+                    <span class="badge bg-info">Enhanced OCR</span>
+                </div>
+                <div class="card-body">
+                    <form id="prescription-form" action="/upload" method="post" enctype="multipart/form-data">
+                        <div id="drop-area" class="drop-container mb-4">
+                            <i class="fas fa-cloud-upload-alt upload-icon pulse"></i>
+                            <h4>Drag & Drop Prescription Image</h4>
+                            <p>or click to browse files</p>
+                            <input type="file" id="prescription_image" name="prescription_image" class="d-none" accept=".jpg,.jpeg,.png,.tif,.tiff">
+                            <img id="preview" class="d-none">
+                            <p class="file-info mt-2 d-none" id="file-info"></p>
+                            
+                            <div class="progress-container">
+                                <div class="progress-bar" id="upload-progress"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" id="camera-btn" class="btn me-2" style="background-color: #00DBDE; color: white;">
+                                <i class="fas fa-camera me-2"></i>Capture with Camera
+                            </button>
+                            <button type="button" id="next-step-btn" class="btn" style="background-color: #FC00FF; color: white;" disabled>
+                                <i class="fas fa-arrow-right me-2"></i>Next Step
+                            </button>
+                        </div>
+                        
+                        <div id="camera-container" class="mb-4">
+                            <video id="camera-view" autoplay></video>
+                            <div class="camera-controls">
+                                <button type="button" id="capture-btn" class="btn" style="background-color: #FC00FF; color: white;">
+                                    <i class="fas fa-camera me-2"></i>Take Photo
+                                </button>
+                                <button type="button" id="cancel-camera-btn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </button>
+                            </div>
+                            <canvas id="canvas" style="display:none;"></canvas>
+                        </div>
+                        
+                        <div class="prescription-details" style="display: none;">
+                            <h5 class="mb-3">Patient & Doctor Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="patient_name" class="form-label">Patient Name <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="patient_name" name="patient_name" placeholder="Enter patient name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="doctor_name" class="form-label">Doctor Name <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-md"></i></span>
+                                        <input type="text" class="form-control" id="doctor_name" name="doctor_name" placeholder="Enter doctor name" required>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-center mt-3">
+                                    <div class="toggle-advanced" id="toggle-advanced">
+                                        <i class="fas fa-cog"></i> Advanced Options
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="advanced-options" id="advanced-options">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="prescription_date" class="form-label">Prescription Date</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                            <input type="date" class="form-control" id="prescription_date" name="prescription_date">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ocr_mode" class="form-label">OCR Precision</label>
+                                        <div class="tooltip-container">
+                                            <select class="form-select" id="ocr_mode" name="ocr_mode">
+                                                <option value="standard" selected>Standard</option>
+                                                <option value="enhanced">Enhanced (Slower)</option>
+                                                <option value="strict">Strict Medical Terms Only</option>
+                                            </select>
+                                            <span class="tooltip-text">Choose 'Enhanced' for better accuracy with difficult handwriting. 'Strict' mode focuses only on medical terms.</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label for="ocr_languages" class="form-label">Recognition Languages</label>
+                                        <div class="tooltip-container w-100">
+                                            <select class="form-select language-select" id="ocr_languages" name="ocr_languages" multiple>
+                                                {% set defaults = default_language_codes|default(['eng']) %}
+                                                {% for code, meta in (language_options|default({'eng': {'label': 'English'}})).items() %}
+                                                <option value="{{ code }}" {% if defaults and code in defaults %}selected{% endif %}>{{ meta.label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <span class="tooltip-text">Hold Ctrl (Windows) or Cmd (macOS) to select multiple languages. Adding more languages can improve multilingual recognition but may slow processing.</span>
+                                        </div>
+                                        {% if default_language_labels is defined and default_language_labels %}
+                                        <small class="text-muted language-hint d-block mt-1">Defaults: {{ default_language_labels|join(', ') }}</small>
+                                        {% endif %}
+                                        {% if recommended_language_labels is defined and recommended_language_labels %}
+                                        <small class="text-muted language-hint d-block">Recommended multilingual pack: {{ recommended_language_labels|join(', ') }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="button" id="back-btn" class="btn btn-outline-secondary me-2">
+                                    <i class="fas fa-arrow-left me-2"></i>Back
+                                </button>
+                                <button type="submit" class="btn" id="submit-btn" style="background-color: #00DBDE; color: white;">
+                                    <i class="fas fa-search me-2"></i>Process Prescription
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="features mt-5">
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                    <h4>Enhanced OCR</h4>
+                    <p>Advanced OCR technology specifically tuned for handwritten medical prescriptions with 95% accuracy</p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <h4>Training Mode</h4>
+                    <p>Train the system with your prescriptions for improved accuracy on future uploads</p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-icon"><i class="fas fa-pills"></i></div>
+                    <h4>Medication Detection</h4>
+                    <p>Automatically identifies medications, dosages, and frequencies from prescriptions</p>
+                </div>
+            </div>
+            
+            <div class="demo-section" id="demo-section" data-aos="fade-up">
+                <h2>See MediScribe AI in Action</h2>
+                <p class="lead">How MediScribe transforms handwritten prescriptions into digital data</p>
+                
+                <div class="workflow-steps mt-5">
+                    <div class="row">
+                        <div class="col-md-3 mb-4">
+                            <div class="workflow-card" data-step="1">
+                                <div class="workflow-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <h5>Upload</h5>
+                                <p>Upload or capture a prescription using your device camera.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="workflow-card" data-step="2">
+                                <div class="workflow-icon">
+                                    <i class="fas fa-magic"></i>
+                                </div>
+                                <h5>Process</h5>
+                                <p>Our AI engine processes and enhances the image for optimal recognition.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="workflow-card" data-step="3">
+                                <div class="workflow-icon">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <h5>Extract</h5>
+                                <p>Advanced OCR extracts text and identifies medications, dosages, and frequencies.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="workflow-card" data-step="4">
+                                <div class="workflow-icon">
+                                    <i class="fas fa-file-medical-alt"></i>
+                                </div>
+                                <h5>Results</h5>
+                                <p>View detailed results with medication information and export options.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-demo mt-5">
+                        <div class="workflow-demo-container">
+                            <div class="workflow-screen active" id="workflow-screen-1">
+                                <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=350&q=80" class="img-fluid rounded shadow" alt="Doctor writing prescription">
+                                <div class="workflow-caption">
+                                    <h5>Step 1: Upload Prescription</h5>
+                                    <p>Drag and drop or use your camera to capture the prescription image</p>
+                                </div>
+                            </div>
+                            <div class="workflow-screen" id="workflow-screen-2">
+                                <img src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=350&q=80" class="img-fluid rounded shadow" alt="Image processing">
+                                <div class="workflow-caption">
+                                    <h5>Step 2: Image Processing</h5>
+                                    <p>Our system enhances the image for better text recognition</p>
+                                </div>
+                            </div>
+                            <div class="workflow-screen" id="workflow-screen-3">
+                                <img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=350&q=80" class="img-fluid rounded shadow" alt="AI analyzing text">
+                                <div class="workflow-caption">
+                                    <h5>Step 3: Text Extraction</h5>
+                                    <p>AI identifies medications, dosages, and instructions</p>
+                                </div>
+                            </div>
+                            <div class="workflow-screen" id="workflow-screen-4">
+                                <img src="https://images.unsplash.com/photo-1624727828489-a1e03b79bba8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&h=350&q=80" class="img-fluid rounded shadow" alt="Digital prescription results">
+                                <div class="workflow-caption">
+                                    <h5>Step 4: Results & Export</h5>
+                                    <p>View the digitized prescription and export as needed</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="workflow-nav mt-4">
+                            <button class="btn btn-sm active" data-screen="1" style="background-color: #00DBDE; color: white; width: 30px; height: 38px; border-radius: 50%; margin: 0 5px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">1</button>
+                            <button class="btn btn-sm" data-screen="2" style="background-color: white; border: 2px solid #FC00FF; color: #FC00FF; width: 30px; height: 38px; border-radius: 50%; margin: 0 5px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">2</button>
+                            <button class="btn btn-sm" data-screen="3" style="background-color: white; border: 2px solid #00DBDE; color: #00DBDE; width: 30px; height: 38px; border-radius: 50%; margin: 0 5px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">3</button>
+                            <button class="btn btn-sm" data-screen="4" style="background-color: white; border: 2px solid #FC00FF; color: #FC00FF; width: 30px; height: 38px; border-radius: 50%; margin: 0 5px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">4</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonials" data-aos="fade-up">
+                <h2 class="text-center mb-4">What Our Users Say</h2>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="testimonial-card">
+                            <p>"MediScribe has saved our pharmacy hours of deciphering handwritten prescriptions. The accuracy is impressive!"</p>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width:50px;height:50px;">JD</div>
+                                <div class="ms-3">
+                                    <strong>John Doe</strong><br>
+                                    <small>Pharmacist, MediCare Pharmacy</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="testimonial-card">
+                            <p>"As a doctor with admittedly poor handwriting, this tool helps ensure my patients get the right medications every time."</p>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="bg-success rounded-circle text-white d-flex align-items-center justify-content-center" style="width:50px;height:50px;">AS</div>
+                                <div class="ms-3">
+                                    <strong>Dr. Amanda Smith</strong><br>
+                                    <small>General Practitioner</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="testimonial-card">
+                            <p>"The medication detection feature is spot-on. We've integrated MediScribe into our hospital workflow with great results."</p>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="bg-info rounded-circle text-white d-flex align-items-center justify-content-center" style="width:50px;height:50px;">RJ</div>
+                                <div class="ms-3">
+                                    <strong>Aditya Yadav</strong><br>
+                                    <small>Hospital Administrator</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Elements
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('prescription_image');
+    const preview = document.getElementById('preview');
+    const fileInfo = document.getElementById('file-info');
+    const progressContainer = document.querySelector('.progress-container');
+    const progressBar = document.getElementById('upload-progress');
+    const submitBtn = document.getElementById('submit-btn');
+    const cameraBtn = document.getElementById('camera-btn');
+    const cameraContainer = document.getElementById('camera-container');
+    const cameraView = document.getElementById('camera-view');
+    const captureBtn = document.getElementById('capture-btn');
+    const cancelCameraBtn = document.getElementById('cancel-camera-btn');
+    const canvas = document.getElementById('canvas');
+    const nextStepBtn = document.getElementById('next-step-btn');
+    const backBtn = document.getElementById('back-btn');
+    const prescriptionDetails = document.querySelector('.prescription-details');
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const toggleAdvanced = document.getElementById('toggle-advanced');
+    const advancedOptions = document.getElementById('advanced-options');
+    
+    // File Upload Handling
+    dropArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropArea.style.backgroundColor = 'rgba(0, 219, 222, 0.15)';
+        dropArea.style.borderColor = '#00DBDE';
+    }
+
+    function unhighlight() {
+        dropArea.style.backgroundColor = 'rgba(0, 219, 222, 0.05)';
+        dropArea.style.borderColor = '#00DBDE';
+    }
+
+    // Handle file select and drop
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        handleFileSelect(e);
+    }
+
+    function handleFileSelect(e) {
+        const files = fileInput.files;
+        if (files.length) {
+            updateFileInfo(files[0]);
+            previewFile(files[0]);
+            simulateUploadProgress();
+            nextStepBtn.disabled = false;
+        }
+    }
+
+    function previewFile(file) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = function() {
+            preview.src = reader.result;
+            preview.classList.remove('d-none');
+            document.querySelector('.upload-icon').classList.remove('pulse');
+        }
+    }
+
+    function updateFileInfo(file) {
+        const sizeInKB = Math.round(file.size / 1024);
+        let sizeStr = sizeInKB + ' KB';
+        if (sizeInKB > 1024) {
+            sizeStr = (sizeInKB / 1024).toFixed(2) + ' MB';
+        }
+        fileInfo.textContent = `${file.name} (${sizeStr})`;
+        fileInfo.classList.remove('d-none');
+    }
+
+    function simulateUploadProgress() {
+        progressContainer.style.display = 'block';
+        let width = 0;
+        const interval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(interval);
+            } else {
+                width += 5;
+                progressBar.style.width = width + '%';
+            }
+        }, 50);
+    }
+
+    // Camera handling
+    let stream = null;
+
+    cameraBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            cameraView.srcObject = stream;
+            dropArea.style.display = 'none';
+            cameraContainer.style.display = 'block';
+        } catch (err) {
+            console.error('Error accessing camera: ', err);
+            alert('Cannot access your camera. Please check permissions.');
+        }
+    });
+
+    captureBtn.addEventListener('click', () => {
+        canvas.width = cameraView.videoWidth;
+        canvas.height = cameraView.videoHeight;
+        canvas.getContext('2d').drawImage(cameraView, 0, 0);
+        const photo = canvas.toDataURL('image/png');
+        preview.src = photo;
+        preview.classList.remove('d-none');
+        stopCamera();
+        dropArea.style.display = 'block';
+        cameraContainer.style.display = 'none';
+        nextStepBtn.disabled = false;
+        
+        // Convert data URL to File object
+        fetch(photo)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], "camera-capture.png", { type: "image/png" });
+                
+                // Create a new FileList-like object
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                updateFileInfo(file);
+                simulateUploadProgress();
+            });
+    });
+
+    cancelCameraBtn.addEventListener('click', () => {
+        stopCamera();
+        dropArea.style.display = 'block';
+        cameraContainer.style.display = 'none';
+    });
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    }
+
+    // Multi-step form navigation
+    nextStepBtn.addEventListener('click', () => {
+        dropArea.style.display = 'none';
+        nextStepBtn.style.display = 'none';
+        cameraBtn.style.display = 'none';
+        prescriptionDetails.style.display = 'block';
+        
+        // Update steps
+        step1.classList.remove('active');
+        step1.classList.add('completed');
+        step2.classList.add('active');
+    });
+
+    backBtn.addEventListener('click', () => {
+        dropArea.style.display = 'block';
+        nextStepBtn.style.display = 'inline-block';
+        cameraBtn.style.display = 'inline-block';
+        prescriptionDetails.style.display = 'none';
+        
+        // Update steps
+        step1.classList.add('active');
+        step1.classList.remove('completed');
+        step2.classList.remove('active');
+    });
+
+    submitBtn.addEventListener('click', () => {
+        // Mark step 2 as completed and step 3 as active
+        // This is just visual as the form will submit
+        step2.classList.remove('active');
+        step2.classList.add('completed');
+        step3.classList.add('active');
+    });
+
+    // Toggle advanced options
+    toggleAdvanced.addEventListener('click', () => {
+        if (advancedOptions.style.display === 'block') {
+            advancedOptions.style.display = 'none';
+            toggleAdvanced.innerHTML = '<i class="fas fa-cog"></i> Advanced Options';
+        } else {
+            advancedOptions.style.display = 'block';
+            toggleAdvanced.innerHTML = '<i class="fas fa-times"></i> Hide Advanced Options';
+        }
+    });
+
+    // Feature card linking
+    document.querySelectorAll('.feature-card').forEach((card, index) => {
+        card.addEventListener('click', () => {
+            const links = [
+                '/about', // Enhanced OCR info page
+                '/training', // Training mode page
+                '/about#medications' // Medication detection info
+            ];
+            window.location.href = links[index];
+        });
+    });
+
+    // Workflow demo functionality - click on cards
+    document.querySelectorAll('.workflow-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const stepNumber = card.getAttribute('data-step');
+            setActiveWorkflowScreen(stepNumber);
+        });
+    });
+    
+    // Workflow nav button click
+    document.querySelectorAll('.workflow-nav button').forEach(button => {
+        button.addEventListener('click', function() {
+            const screenNum = this.getAttribute('data-screen');
+            setActiveWorkflowScreen(screenNum);
+            // Stop auto-rotation when user clicks navigation
+            clearInterval(workflowInterval);
+        });
+    });
+    
+    // Function to set active workflow screen and update button styles
+    function setActiveWorkflowScreen(number) {
+        // Hide all screens
+        document.querySelectorAll('.workflow-screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        
+        // Show selected screen
+        document.getElementById(`workflow-screen-${number}`).classList.add('active');
+        
+        // Update button styles
+        document.querySelectorAll('.workflow-nav button').forEach(btn => {
+            // Reset styles for all buttons
+            if (btn.getAttribute('data-screen') === '1') {
+                btn.style.backgroundColor = 'white';
+                btn.style.color = '#00DBDE';
+                btn.style.border = '2px solid #00DBDE';
+                btn.classList.remove('active');
+            } else if (btn.getAttribute('data-screen') === '3') {
+                btn.style.backgroundColor = 'white';
+                btn.style.color = '#00DBDE';
+                btn.style.border = '2px solid #00DBDE';
+                btn.classList.remove('active');
+            } else {
+                btn.style.backgroundColor = 'white';
+                btn.style.color = '#FC00FF';
+                btn.style.border = '2px solid #FC00FF';
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Style the active button
+        const activeButton = document.querySelector(`.workflow-nav button[data-screen="${number}"]`);
+        if (number === '1' || number === '3' || number === 1 || number === 3) {
+            activeButton.style.backgroundColor = '#00DBDE';
+            activeButton.style.color = 'white';
+            activeButton.style.border = 'none';
+        } else {
+            activeButton.style.backgroundColor = '#FC00FF';
+            activeButton.style.color = 'white'; 
+            activeButton.style.border = 'none';
+        }
+        activeButton.classList.add('active');
+    }
+    
+    // Auto-rotate workflow screens every 5 seconds
+    let currentScreen = 1;
+    const maxScreens = 4;
+
+    function rotateWorkflowScreens() {
+        currentScreen = currentScreen % maxScreens + 1;
+        setActiveWorkflowScreen(currentScreen);
+    }
+
+    // Start the rotation
+    const workflowInterval = setInterval(rotateWorkflowScreens, 5000);
+
+    // Stop rotation when user interacts with the nav
+    document.querySelector('.workflow-nav').addEventListener('mouseenter', () => {
+        clearInterval(workflowInterval);
+    });
+
+    // Loading overlay JS removed to avoid cases where
+    // the spinner stays visible even after the server
+    // has returned the OCR results page.
+</script>
+{% endblock %}

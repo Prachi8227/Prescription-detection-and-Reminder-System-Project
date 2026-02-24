@@ -1,0 +1,40 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761383925_Prescription_Rohan_Sharma.png",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761383925_Prescription_Rohan_Sharma.png",
+    "raw_text": "Prescription\n\nDoctor: Dr. Rajesh Menon, MD (General Medicine)\nClinic: Sunrise Clinic, Mumbai\n\nDate: 24-Oct-2025\n\nPatient: Rohan Sharma, 32M\n\nWeight: 72 kg\n\nDiagnosis: Upper Respiratory Tract Infection with Fever\n\n1. Augmentin 625 mg Tablet\n(Amoxicillin 500 mg + Clavulanic Acid 125 mg)\nDose: 1 tablet twice daily (BD) after meals\nDuration: 5 days\n\nInstruction: Take with water, complete full course\n\n2. Dolo 650 mg Tablet\n(Paracetamol)\nDose: 1 tablet three times daily (TDS) as needed for fever or pain\n\nInstruction: Take after food\n\n3. Montair-LC Tablet\n(Montelukast 10 mg + Levocetirizine 5 mg)\nDose: 1 tablet once daily (OD) at night\n\nInstruction: Take after meals, avoid alcohol\n\n4. Omez 20 mg Capsule\n(Omeprazole)\nDose: 1 capsule once daily before breakfast\n\nInstruction: Do not crush or chew\n\nAdditional Advice:\n- Drink plenty of fluids\n\nPage 1",
+    "cleaned_text": "Prescription\n\nDevery every nightor: Dr. Rajesh Menon, MD (General Medicine)\nClinic: Sunrise Clinic, Mumbai\n\nDate: 24-every every night-2025\n\nPatient: Rohan Sharma, 32M\n\nWeight: 72 kg\n\nDiagnosis: Upper Respiratory Tract Infection with Fever\n\n1. amoxicillin + clavulanic aceclofenac 625 mg rabeprazole\n(amoxicillin 500 mg + Clavulanic aceclofenac 125 mg)\nDose: 1 rabeprazole twice once once once once daily (BD) after meals\nDuration: 5 days\n\nInstruction: Take with with water, complete full course\n\n2. paracetamol 650 mg rabeprazole\n(paracetamol)\nDose: 1 rabeprazole three times once once once once daily (three times once once daily) as as needed for fever or pain\n\nInstruction: Take after food\n\n3. montelukast-LC rabeprazole\n(montelukast 10 mg + levocetirizine 5 mg)\nDose: 1 rabeprazole once once once once once daily (OD) at every night\n\nInstruction: Take after meals, avoid alcohol\n\n4. omeprazole 20 mg Capsule\n(omeprazole)\nDose: 1 capsule once once once once once daily before breakfast\n\nInstruction: Do every night do not crush or chew\n\nAdditional Advice:\n- Drink plenty of fluids\n\nPage 1",
+    "medications": [
+        "paracetamol",
+        "levocetirizine",
+        "omeprazole",
+        "aceclofenac",
+        "amoxicillin",
+        "rabeprazole",
+        "montelukast"
+    ],
+    "dosages": [
+        "10 mg",
+        "5 mg",
+        "500 mg",
+        "20 mg",
+        "125 mg",
+        "625 mg",
+        "650 mg"
+    ],
+    "frequencies": [
+        "once daily",
+        "as needed"
+    ],
+    "routes": [],
+    "confidence": 85.00000000000001,
+    "preprocessed_url": "/results/enhanced_1761383925_Prescription_Rohan_Sharma.png",
+    "accuracy": {
+        "overall_accuracy": 85.00000000000001,
+        "character_accuracy": 85.00000000000001,
+        "word_accuracy": 85.00000000000001,
+        "medication_accuracy": 85.00000000000001
+    },
+    "patient_name": "Aditya yadav",
+    "doctor_name": "Dr. Shingare",
+    "date": "2025-10-25"
+}

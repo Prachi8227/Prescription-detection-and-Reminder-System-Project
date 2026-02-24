@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>MediScribe AI - Medical Prescription OCR</title>
+    <meta name="description" content="Advanced OCR for handwritten medical prescriptions." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='template_assets/images/favicon.svg') }}" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='template_assets/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='template_assets/css/LineIcons.2.0.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='template_assets/css/animate.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='template_assets/css/tiny-slider.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='template_assets/css/glightbox.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='template_assets/css/main.css') }}" />
+</head>
+<body>
+    <div class="preloader">
+        <div class="preloader-inner">
+            <div class="preloader-icon"><span></span><span></span></div>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container mt-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    <header class="header navbar-area">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-12">
+                    <div class="nav-inner">
+                        <nav class="navbar navbar-expand-lg">
+                            <a class="navbar-brand" href="{{ url_for('landing') }}">
+                                <img src="{{ url_for('static', filename='template_assets/images/logo/logo.svg') }}" alt="MediScribe">
+                            </a>
+                            <button class="navbar-toggler mobile-menu-btn" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                                <span class="toggler-icon"></span>
+                                <span class="toggler-icon"></span>
+                                <span class="toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse sub-menu-bar" id="navbarSupportedContent">
+                                <ul id="nav" class="navbar-nav ms-auto">
+                                    <li class="nav-item"><a class="page-scroll active" href="{{ url_for('landing') }}">Home</a></li>
+                                    <li class="nav-item"><a class="page-scroll" href="#services">Services</a></li>
+                                    <li class="nav-item"><a class="page-scroll" href="#about">About</a></li>
+                                    {% if session.get('username') %}
+                                    <li class="nav-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                                    <li class="nav-item"><a href="{{ url_for('logout') }}">Logout</a></li>
+                                    {% else %}
+                                    <li class="nav-item"><a href="{{ url_for('login') }}">Login</a></li>
+                                    <li class="nav-item"><a href="{{ url_for('register') }}">Register</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="button add-list-button">
+                                {% if session.get('username') %}
+                                <a href="{{ url_for('ocr_upload') }}" class="btn">Prescription OCR</a>
+                                {% else %}
+                                <a href="{{ url_for('login') }}" class="btn">Get Started</a>
+                                {% endif %}
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero-area">
+        <div class="shapes">
+            <img src="{{ url_for('static', filename='template_assets/images/hero/05.svg') }}" class="shape1" alt="#">
+            <img src="{{ url_for('static', filename='template_assets/images/hero/01.svg') }}" class="shape2" alt="#">
+        </div>
+        <div class="hero-slider">
+            <div class="single-slider">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 col-12">
+                            <div class="hero-text">
+                                <div class="section-heading">
+                                    <h2 class="wow fadeInLeft" data-wow-delay=".3s">Prescription OCR &<br>Healthcare Intelligence</h2>
+                                    <p class="wow fadeInLeft" data-wow-delay=".5s">MediScribe AI turns handwritten prescriptions into digital data. Upload a prescription, get medications and dosages in seconds.</p>
+                                    <div class="button wow fadeInLeft" data-wow-delay=".7s">
+                                        {% if session.get('username') %}
+                                        <a href="{{ url_for('ocr_upload') }}" class="btn">Open OCR Module</a>
+                                        <a href="{{ url_for('dashboard') }}" class="btn">Dashboard</a>
+                                        {% else %}
+                                        <a href="{{ url_for('login') }}" class="btn">Login</a>
+                                        <a href="{{ url_for('register') }}" class="btn">Register</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 col-12">
+                            <div class="hero-image wow fadeInRight" data-wow-delay=".5s">
+                                <img src="{{ url_for('static', filename='template_assets/images/hero/02.png') }}" alt="#">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section - OCR Module and other services -->
+    <section class="pricing-table section" id="services">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-title">
+                        <h3>Services</h3>
+                        <h2 class="wow fadeInUp" data-wow-delay=".4s">Our Services</h2>
+                        <p class="wow fadeInUp" data-wow-delay=".6s">MediScribe AI provides smart tools for prescription digitization and medication management.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="single-table wow fadeInUp" data-wow-delay=".2s">
+                        <div class="table-head">
+                            <h4 class="title">Prescription OCR Module</h4>
+                            <div class="price">
+                                <h2 class="amount"><i class="lni lni-files"></i></h2>
+                            </div>
+                        </div>
+                        <ul class="table-list">
+                            <li>Upload or capture prescription images</li>
+                            <li>Handwritten text recognition (95%+ accuracy)</li>
+                            <li>Multi-language support (English, Hindi, Marathi, Kannada)</li>
+                            <li>Extract medications, dosages & frequencies</li>
+                        </ul>
+                        <div class="button">
+                            {% if session.get('username') %}
+                            <a class="btn" href="{{ url_for('ocr_upload') }}">Open OCR Module</a>
+                            {% else %}
+                            <a class="btn" href="{{ url_for('login') }}">Login to Use</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="single-table wow fadeInUp" data-wow-delay=".4s">
+                        <div class="table-head">
+                            <h4 class="title">Training Mode</h4>
+                            <div class="price">
+                                <h2 class="amount"><i class="lni lni-graduation"></i></h2>
+                            </div>
+                        </div>
+                        <ul class="table-list">
+                            <li>Train the system with your prescriptions</li>
+                            <li>Improve accuracy for your doctor's handwriting</li>
+                            <li>Instant recognition for trained images</li>
+                        </ul>
+                        <div class="button">
+                            <a class="btn" href="{{ url_for('training') }}">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="single-table wow fadeInUp" data-wow-delay=".6s">
+                        <div class="table-head">
+                            <h4 class="title">Medication & Reminders</h4>
+                            <div class="price">
+                                <h2 class="amount"><i class="lni lni-pills"></i></h2>
+                            </div>
+                        </div>
+                        <ul class="table-list">
+                            <li>Auto-detected medications from OCR</li>
+                            <li>Set reminders for doses</li>
+                            <li>History and nearby pharmacies</li>
+                        </ul>
+                        <div class="button">
+                            {% if session.get('username') %}
+                            <a class="btn" href="{{ url_for('dashboard') }}">Go to Dashboard</a>
+                            {% else %}
+                            <a class="btn" href="{{ url_for('register') }}">Register</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-us section" id="about">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-12 col-12">
+                    <div class="content-left wow fadeInLeft" data-wow-delay=".3s">
+                        <img src="{{ url_for('static', filename='template_assets/images/about/about.png') }}" alt="#">
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 col-12">
+                    <div class="content-right wow fadeInRight" data-wow-delay=".5s">
+                        <span class="sub-heading">About</span>
+                        <h2>Handwriting meets healthcare intelligence.</h2>
+                        <p>MediScribe AI is an advanced OCR system for handwritten medical prescriptions. We use image preprocessing and specialized engines to achieve high accuracy even with difficult handwriting.</p>
+                        <ul class="list">
+                            <li><i class="lni lni-checkbox"></i>Advanced prescription OCR</li>
+                            <li><i class="lni lni-checkbox"></i>Multi-language support</li>
+                            <li><i class="lni lni-checkbox"></i>Medication & dosage extraction</li>
+                            <li><i class="lni lni-checkbox"></i>Training mode for your prescriptions</li>
+                        </ul>
+                        <div class="button">
+                            <a href="{{ url_for('about') }}" class="btn">More About Us</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="call-action section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2 col-12">
+                    <div class="inner">
+                        <div class="content">
+                            <h2 class="wow fadeInUp" data-wow-delay=".4s">Ready to digitize your prescriptions?</h2>
+                            <p class="wow fadeInUp" data-wow-delay=".6s">Login or register to use the Prescription OCR module and other services.</p>
+                            <div class="button wow fadeInUp" data-wow-delay=".8s">
+                                {% if session.get('username') %}
+                                <a href="{{ url_for('ocr_upload') }}" class="btn">Open OCR Module</a>
+                                {% else %}
+                                <a href="{{ url_for('register') }}" class="btn">Get Started</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer overlay">
+        <div class="footer-top">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-12">
+                        <div class="cta">
+                            <h3>MediScribe AI</h3>
+                            <p>Advanced prescription OCR and healthcare intelligence.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-12">
+                        <div class="form">
+                            <h3>Quick links</h3>
+                            <p><a href="{{ url_for('login') }}">Login</a> · <a href="{{ url_for('register') }}">Register</a> · <a href="{{ url_for('about') }}">About</a> · <a href="#services">Services</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="inner">
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="copyright-text">MediScribe AI – Prescription OCR</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <a href="#" class="scroll-top"><i class="lni lni-chevron-up"></i></a>
+
+    <script src="{{ url_for('static', filename='template_assets/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='template_assets/js/wow.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='template_assets/js/tiny-slider.js') }}"></script>
+    <script src="{{ url_for('static', filename='template_assets/js/main.js') }}"></script>
+    <script type="text/javascript">
+        var slider = new tns({
+            container: '.hero-slider',
+            slideBy: 'page',
+            autoplay: true,
+            autoplayButtonOutput: false,
+            mouseDrag: true,
+            gutter: 0,
+            items: 1,
+            nav: false,
+            controls: true,
+            controlsText: ['<i class="lni lni-chevron-left"></i>', '<i class="lni lni-chevron-right"></i>'],
+            responsive: { 1200: { items: 1 }, 992: { items: 1 }, 0: { items: 1 } }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{
+    "image_path": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\1771835884_pre1.jpeg",
+    "preprocessed_image": "D:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1771835884_pre1.jpeg",
+    "raw_text": "Oscch? &hav\n20/\n52\nYp\nZer-ffo_\n2\nGut\n8k\nCap\nT26\nMa ftal secX\nthd <\n$ _(\nIhL\nWlzs\nTd .\nSo f",
+    "cleaned_text": "Oscch? &hav\n20/\n52\nYp\nZer-ffo_\n2\nGut\n8k\nCap\nT26\nMa mefenamic acid secX\nthd <\n$ _(\nIhL\nWlzs\nTd .\nSo f",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 38.33941855043749,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "handwriting",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": true,
+    "handwriting_attempted": true,
+    "text_quality": 0.6455555555555555,
+    "medical_signal": 0.06666666666666667,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1771835884_pre1.jpeg",
+    "accuracy": {
+        "overall_accuracy": 38.33941855043749,
+        "character_accuracy": 38.33941855043749,
+        "word_accuracy": 38.33941855043749,
+        "medication_accuracy": 38.33941855043749
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Hav",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Oscch",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Mefenamic",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Oscch",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Mefenamic",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 5,
+    "patient_name": "Prachi",
+    "doctor_name": "Aditya",
+    "date": "2026-02-23",
+    "user_id": 5,
+    "language_labels": [
+        "English"
+    ]
+}

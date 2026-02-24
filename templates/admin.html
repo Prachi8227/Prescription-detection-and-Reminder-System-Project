@@ -1,0 +1,216 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="admin-wrapper">
+    <div class="admin-header">
+        <div>
+            <h2>Admin Console</h2>
+            <p class="admin-subtitle">Manage users, roles, and contact details in one place.</p>
+        </div>
+        <div class="admin-header-actions">
+            <a href="{{ url_for('ocr_upload') }}" class="admin-action-secondary" target="_blank" rel="noopener">Open OCR Module</a>
+        <a href="{{ url_for('register') }}" class="admin-action-btn">＋ Add User</a>
+        </div>
+    </div>
+
+    <div class="admin-stats">
+        <div class="admin-stat-card">
+            <span class="admin-stat-label">Total Users</span>
+            <span class="admin-stat-value">{{ total_users }}</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="admin-stat-label">Administrators</span>
+            <span class="admin-stat-value">{{ admin_count }}</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="admin-stat-label">Members</span>
+            <span class="admin-stat-value">{{ regular_count }}</span>
+        </div>
+    </div>
+
+    <form method="GET" action="{{ url_for('admin') }}" class="admin-search-form">
+        <div class="admin-search-field">
+            <label for="adminSearchBox">Search users</label>
+            <div class="admin-search-input">
+                
+                <div class="voice-search">
+                    <input type="text" name="query" id="adminSearchBox" placeholder="Search by name, city, email or mobile number" value="{{ search_query }}">
+                    <button type="button" class="voice-btn" data-target="adminSearchBox" aria-label="Start voice search">
+                        <img src="{{ url_for('static', filename='mic.svg') }}" alt="mic icon" width="20" height="20">
+                    </button>
+                </div>
+                {% if search_query %}
+                <a href="{{ url_for('admin') }}" class="admin-clear-search">Clear</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="admin-role-select">
+            <label for="adminRoleFilter">Role</label>
+            <select name="role" id="adminRoleFilter">
+                <option value="all" {% if selected_role == 'all' %}selected{% endif %}>All users</option>
+                <option value="admin" {% if selected_role == 'admin' %}selected{% endif %}>Administrators</option>
+                <option value="member" {% if selected_role == 'member' %}selected{% endif %}>Members</option>
+            </select>
+        </div>
+        <button type="submit" class="admin-search-button">Search</button>
+        <span class="admin-search-count">Showing {{ filtered_count }} of {{ total_users }} users</span>
+    </form>
+
+    {% if users %}
+    <div class="admin-grid" id="adminUserGrid">
+        {% for user in users %}
+        <article class="admin-card" data-search="{{ user.search_blob }}" data-role="{{ 'admin' if user.is_admin else 'member' }}">
+            <div class="admin-card-header">
+                <div class="admin-avatar {{ 'admin-avatar-admin' if user.is_admin else 'admin-avatar-user' }}">
+                    <span>{{ user.avatar }}</span>
+                </div>
+                <div class="admin-card-summary">
+                    <h3>{{ user.username }}</h3>
+                    <p class="admin-email">{{ user.email }}</p>
+                </div>
+                <span class="admin-role-chip {{ 'admin-role-admin' if user.is_admin else 'admin-role-member' }}">{{ user.role_label }}</span>
+            </div>
+            <div class="admin-card-body">
+                <div class="admin-field">
+                    <span>Mobile</span>
+                    <p>{{ user.mobile }}</p>
+                </div>
+                <div class="admin-field">
+                    <span>Address</span>
+                    <p>{{ user.address }}</p>
+                </div>
+                <div class="admin-field">
+                    <span>Pin Code</span>
+                    <p>{{ user.pin_code }}</p>
+                </div>
+                <div class="admin-field">
+                    <span>Blood Group</span>
+                    <p>{{ user.blood_group }}</p>
+                </div>
+             
+                <div class="admin-field">
+                    <span>Gender</span>
+                    <p>{{ user.gender }}</p>
+                </div>
+            </div>
+            <div class="admin-card-actions">
+                <a href="{{ url_for('edit_user', user_id=user.id) }}" class="admin-action-secondary">Edit</a>
+                <a href="{{ url_for('admin_user_history', user_id=user.id) }}" class="admin-action-info">History</a>
+                {% if not user.is_admin %}
+                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Delete this user?');">
+                    <button type="submit" class="admin-action-danger">Delete</button>
+                </form>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    <div class="admin-empty-filter" id="adminEmptyFilter" style="display: none;">
+        <h4>No matching users</h4>
+        <p class="text-muted">Try adjusting your search terms or clear the filter.</p>
+    </div>
+    {% else %}
+    <div class="admin-empty-state">
+     
+        <h4>No users found</h4>
+        <p class="text-muted">Try adjusting your search or add a new user to get started.</p>
+        <a href="{{ url_for('register') }}" class="admin-action-btn">Add your first user</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if users %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const voiceButtons = document.querySelectorAll('.voice-btn');
+        voiceButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                if (!targetInput) return;
+                if (!('webkitSpeechRecognition' in window)) {
+                    alert('Voice recognition is not supported in this browser.');
+                    return;
+                }
+                const recognition = new webkitSpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                recognition.start();
+                recognition.onresult = (event) => {
+                    const result = event.results[0][0].transcript;
+                    targetInput.value = result;
+                    const inputEvent = new Event('input', { bubbles: true });
+                    targetInput.dispatchEvent(inputEvent);
+                };
+                recognition.onerror = () => {
+                    alert('Could not capture voice input. Please try again.');
+                };
+            });
+        });
+        const searchForm = document.querySelector('.admin-search-form');
+        const searchInput = document.getElementById('adminSearchBox');
+        const cards = Array.from(document.querySelectorAll('.admin-card'));
+        const countLabel = document.querySelector('.admin-search-count');
+        const emptyFilter = document.getElementById('adminEmptyFilter');
+        const roleFilter = document.getElementById('adminRoleFilter');
+        const totalUsers = Number('{{ total_users|int }}');
+
+        function normalize(value) {
+            return (value || '')
+                .toString()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+        }
+
+        function applyFilter() {
+            const normalizedQuery = normalize(searchInput && searchInput.value ? searchInput.value : '');
+            const tokens = normalizedQuery ? normalizedQuery.split(/\s+/) : [];
+            const roleValue = roleFilter ? roleFilter.value : 'all';
+            let visible = 0;
+
+            cards.forEach(card => {
+                const text = normalize(card.dataset.search || '');
+                const roleMatch = roleValue === 'all' || (card.dataset.role || 'member') === roleValue;
+                const textMatch = tokens.length === 0 || tokens.every(token => text.includes(token));
+                if (textMatch && roleMatch) {
+                    card.style.display = '';
+                    visible += 1;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (countLabel) {
+                if (tokens.length === 0 && (roleValue === 'all')) {
+                    countLabel.textContent = `Showing ${visible} of ${totalUsers} users`;
+                } else {
+                    countLabel.textContent = `Showing ${visible} match${visible === 1 ? '' : 'es'}`;
+                }
+            }
+
+            if (emptyFilter) {
+                emptyFilter.style.display = visible === 0 ? 'flex' : 'none';
+            }
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilter);
+        }
+
+        if (roleFilter) {
+            roleFilter.addEventListener('change', applyFilter);
+        }
+
+        if (searchForm) {
+            searchForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                applyFilter();
+            });
+        }
+
+        applyFilter();
+    });
+</script>
+{% endif %}
+{% endblock %}

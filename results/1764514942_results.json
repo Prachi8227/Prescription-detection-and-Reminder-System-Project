@@ -1,0 +1,42 @@
+{
+    "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1764513832_pic.jpg",
+    "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1764513832_pic.jpg",
+    "raw_text": "Moxikind CV\r\nfepanil \r\nTusq",
+    "cleaned_text": "moxikind cv\r\nfepanil \r\ntusq",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 87.4,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.8114627864601585,
+    "medical_signal": 0.10144927536231885,
+    "ocr_mode": "auto",
+    "structured_prescriptions": [],
+    "medication_count": 0,
+    "preprocessed_url": "/uploads/enhanced_1764513832_pic.jpg",
+    "accuracy": {
+        "overall_accuracy": 87.4,
+        "character_accuracy": 87.4,
+        "word_accuracy": 87.4,
+        "medication_accuracy": 87.4
+    },
+    "patient_name": "Aditya ",
+    "doctor_name": "Prachi",
+    "date": "2025-11-30",
+    "user_id": 5,
+    "language_labels": [
+        "English"
+    ]
+}

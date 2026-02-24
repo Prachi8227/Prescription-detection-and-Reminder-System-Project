@@ -1,0 +1,21 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761383177_Prescription_Rohan_Sharma.png",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761383177_Prescription_Rohan_Sharma.png",
+    "raw_text": "",
+    "cleaned_text": "",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 50.0,
+    "preprocessed_url": "/results/enhanced_1761383177_Prescription_Rohan_Sharma.png",
+    "accuracy": {
+        "overall_accuracy": 50.0,
+        "character_accuracy": 50.0,
+        "word_accuracy": 50.0,
+        "medication_accuracy": 50.0
+    },
+    "patient_name": "Aditya yadav",
+    "doctor_name": "Dr. Shingare",
+    "date": "2025-10-25"
+}

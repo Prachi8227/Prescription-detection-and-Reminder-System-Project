@@ -1,0 +1,21 @@
+{
+    "image_path": "D:\\mProject\\mediscribe_app\\uploads\\1761383796_pr.jpg",
+    "preprocessed_image": "D:\\mProject\\mediscribe_app\\uploads\\enhanced_1761383796_pr.jpg",
+    "raw_text": "R ! wt loq |\n\nbot et\n(= @ Agonyo\n\ner ree) tiny Pen SSR\n\n| nee ezug waz, 7. BIST Wh. aera ayaa FY. 9975075730",
+    "cleaned_text": "R ! wt loq |\n\nbot et\n(= @ Agonyo\n\ner ree) tiny Pen SSR\n\n| nee ezug waz, 7. BIST Wh. aera ayaa FY. 9975075730",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "confidence": 80.0,
+    "preprocessed_url": "/results/enhanced_1761383796_pr.jpg",
+    "accuracy": {
+        "overall_accuracy": 80.0,
+        "character_accuracy": 80.0,
+        "word_accuracy": 80.0,
+        "medication_accuracy": 80.0
+    },
+    "patient_name": "Aditya yadav",
+    "doctor_name": "Dr. Shingare",
+    "date": "2025-10-25"
+}
