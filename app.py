@@ -2276,5 +2276,5 @@ else:
     logging.warning('Email notifications are disabled. Configure EMAIL_HOST/PORT/USERNAME/PASSWORD/EMAIL_FROM to enable reminder emails.')
 
 
-    if __name__ == '__main__':
-        app.run()
+if __name__ == '__main__':
+    app.run(debug=True)
