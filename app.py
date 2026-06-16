@@ -34,12 +34,18 @@ from ocr_module.prescription_ocr import (
     normalize_language_codes,
     get_language_labels,
 )
-from ocr_module.enhanced_ocr import (
-    HANDWRITING_QUALITY_THRESHOLD,
-    HANDWRITING_SELECTION_MARGIN,
-    HANDWRITING_MIN_SCORE,
-    MEDICAL_SIGNAL_THRESHOLD,
-)
+# OCR thresholds
+HANDWRITING_QUALITY_THRESHOLD = 0.70
+HANDWRITING_SELECTION_MARGIN = 0.10
+HANDWRITING_MIN_SCORE = 0.50
+MEDICAL_SIGNAL_THRESHOLD = 0.60
+
+# from ocr_module.enhanced_ocr import (
+#     HANDWRITING_QUALITY_THRESHOLD = 80,
+#     HANDWRITING_SELECTION_MARGIN,
+#     HANDWRITING_MIN_SCORE,
+#     MEDICAL_SIGNAL_THRESHOLD,
+# )
 
 # Load environment variables from .env (if present)
 load_dotenv()
@@ -93,7 +99,7 @@ def timestamp_to_date(timestamp):
 # Configure upload folder and allowed extensions
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 RESULTS_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'results')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'tif', 'tiff'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'tif', 'tiff', 'webp'}
 
 # Ensure upload and results directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -296,12 +302,72 @@ def extract_durations(text):
 
 
 def build_structured_prescriptions(results_dict):
+    raw_text = results_dict.get('cleaned_text') or results_dict.get('raw_text') or ''
+
+    # Parse numbered prescription rows from trained/OCR text (e.g. 1) PAN HD *)
+    try:
+        from ocr_module.enhanced_ocr import extract_table_prescription_medicines
+        table_meds = extract_table_prescription_medicines(raw_text)
+        if table_meds:
+            return [
+                {
+                    'name': m['name'],
+                    'dosage': m.get('dosage') or 'As directed',
+                    'frequency': m.get('frequency') or 'As prescribed',
+                    'duration': m.get('duration') or 'Until finished',
+                    'instruction': m.get('instruction') or 'Follow doctor instructions',
+                }
+                for m in table_meds
+            ]
+    except Exception:
+        pass
+
+    # Use saved structured rows from trained OCR or prescription-table parsing
+    existing = results_dict.get('structured_prescriptions') or []
+    use_saved = (
+        existing
+        and (
+            results_dict.get('extraction_mode') in ('prescription_table', 'trained')
+            or results_dict.get('is_trained')
+            or results_dict.get('trained_match')
+        )
+    )
+    if use_saved:
+        structured = []
+        seen = set()
+        for med in existing:
+            if isinstance(med, dict):
+                name = (med.get('name') or '').strip()
+            else:
+                name = str(med).strip()
+            key = name.lower()
+            if not name or key in seen:
+                continue
+            seen.add(key)
+            if isinstance(med, dict):
+                structured.append({
+                    'name': name,
+                    'dosage': med.get('dosage') or 'As directed',
+                    'frequency': med.get('frequency') or 'As prescribed',
+                    'duration': med.get('duration') or 'Until finished',
+                    'instruction': med.get('instruction') or 'Follow doctor instructions',
+                })
+            else:
+                structured.append({
+                    'name': name,
+                    'dosage': 'As directed',
+                    'frequency': 'As prescribed',
+                    'duration': 'Until finished',
+                    'instruction': 'Follow doctor instructions',
+                })
+        if structured:
+            return structured
+
     # Handle case where results might come from trained database with different structure
     medications = results_dict.get('medications') or []
     dosages = results_dict.get('dosages') or []
     frequencies = results_dict.get('frequencies') or []
     routes = results_dict.get('routes') or []
-    raw_text = results_dict.get('cleaned_text') or results_dict.get('raw_text') or ''
     durations = results_dict.get('durations') or extract_durations(raw_text)
     
     # Handle case where medications might be in medicines_strict format (new enhanced OCR format)
@@ -417,6 +483,17 @@ def build_structured_prescriptions(results_dict):
         frequencies = ['N/A']
         durations = ['N/A']
         routes = ['N/A']
+
+    # Remove duplicate medicine names before pairing fields.
+    seen_med_names = set()
+    unique_medications = []
+    for med in medications:
+        med_key = re.sub(r'\s+', ' ', str(med).strip()).lower()
+        if not med_key or med_key in seen_med_names:
+            continue
+        seen_med_names.add(med_key)
+        unique_medications.append(med)
+    medications = unique_medications
     
     structured = []
     max_len = max(len(medications), len(dosages), len(frequencies), len(durations), len(routes), 1)
@@ -431,14 +508,56 @@ def build_structured_prescriptions(results_dict):
         # Skip entries with empty or placeholder values, but allow "Medication Not Clearly Identified"
         if name and (name != 'Not mentioned' and name != 'Medication 1') or name in ['Medication Not Clearly Identified', 'No medications detected']:
             structured.append({
-                'name': name.title() if isinstance(name, str) and name not in ['Medication Not Clearly Identified', 'No medications detected'] else name,
+                'name': (
+                    name
+                    if results_dict.get('extraction_mode') == 'prescription_table'
+                    or name in ['Medication Not Clearly Identified', 'No medications detected']
+                    else (name.title() if isinstance(name, str) else name)
+                ),
                 'dosage': dosage,
                 'frequency': frequency,
                 'duration': duration,
                 'instruction': instruction,
             })
     
-    return structured
+    # Keep only one row per medicine name to avoid repeated entries
+    # caused by overlapping OCR extraction patterns.
+    deduped_structured = []
+    by_name = {}
+
+    def detail_score(item):
+        defaults = {
+            'as directed',
+            'as prescribed',
+            'until finished',
+            'follow doctor instructions',
+            'n/a',
+            'not mentioned',
+            '—',
+            '',
+        }
+        score = 0
+        for field in ('dosage', 'frequency', 'duration', 'instruction'):
+            value = str(item.get(field, '')).strip().lower()
+            if value and value not in defaults:
+                score += 1
+        return score
+
+    for entry in structured:
+        name_key = re.sub(r'\s+', ' ', str(entry.get('name', '')).strip()).lower()
+        if not name_key:
+            continue
+        existing = by_name.get(name_key)
+        if existing is None:
+            by_name[name_key] = entry
+            deduped_structured.append(entry)
+            continue
+        if detail_score(entry) > detail_score(existing):
+            replace_index = deduped_structured.index(existing)
+            deduped_structured[replace_index] = entry
+            by_name[name_key] = entry
+
+    return deduped_structured
 
 
 def send_email(subject, body, recipient):
@@ -1380,11 +1499,8 @@ def load_user_history_results(target_user_id: int) -> list[dict]:
         if 'medications' not in result_data:
             result_data['medications'] = []
 
-        if 'structured_prescriptions' not in result_data:
-            result_data['structured_prescriptions'] = build_structured_prescriptions(result_data)
-
-        if 'medication_count' not in result_data:
-            result_data['medication_count'] = len(result_data['structured_prescriptions'])
+        result_data['structured_prescriptions'] = build_structured_prescriptions(result_data)
+        result_data['medication_count'] = len(result_data['structured_prescriptions'])
 
         raw_language_codes = (
             result_data.get('languages_used')
@@ -1677,15 +1793,32 @@ def upload_file():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         timestamp = int(time.time())
+        if not filename:
+            ext = file.mimetype.split('/')[-1] if file.mimetype and '/' in file.mimetype else 'jpg'
+            if ext == 'jpeg':
+                ext = 'jpg'
+            filename = f"prescription.{ext}"
         unique_filename = f"{timestamp}_{filename}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
-        
-        results = process_prescription(
-            filepath,
-            app.config['RESULTS_FOLDER'],
-            languages=language_codes,
-        )
+
+        try:
+            results = process_prescription(
+                filepath,
+                app.config['RESULTS_FOLDER'],
+                languages=language_codes,
+            )
+        except Exception as exc:
+            logging.exception("Prescription processing failed for %s", filepath)
+            return _upload_error(
+                f"Failed to process prescription. Please try again with English selected, or a clearer photo. ({exc})"
+            )
+
+        if not isinstance(results, dict):
+            return _upload_error('Processing returned an invalid response. Please try again.')
+
+        if results.get('error') and not (results.get('raw_text') or '').strip():
+            flash(f"OCR issue: {results['error']}", 'warning')
         
         if results.get('preprocessed_image'):
             preprocessed_url = build_file_url(results['preprocessed_image'])
@@ -1694,11 +1827,15 @@ def upload_file():
         
         accuracy = evaluate_accuracy(results)
         results['accuracy'] = accuracy
-        
-        # Always (re)build structured prescriptions from the latest OCR text
-        structured_prescriptions = build_structured_prescriptions(results)
+
+        if results.get('is_trained') or results.get('trained_match'):
+            structured_prescriptions = results.get('structured_prescriptions') or build_structured_prescriptions(results)
+        else:
+            structured_prescriptions = build_structured_prescriptions(results)
         results['structured_prescriptions'] = structured_prescriptions
         results['medication_count'] = len(structured_prescriptions)
+        if structured_prescriptions and not results.get('medications'):
+            results['medications'] = [med['name'] for med in structured_prescriptions if med.get('name')]
 
         results['patient_name'] = patient_name
         results['doctor_name'] = doctor_name
@@ -1717,7 +1854,7 @@ def upload_file():
                                results=results, 
                                original_image=url_for('uploaded_file', filename=unique_filename))
     
-    return _upload_error('Invalid file type. Please upload an image file (PNG, JPG, JPEG, TIF, TIFF).')
+    return _upload_error('Invalid file type. Please upload an image file (PNG, JPG, JPEG, WEBP, TIF, TIFF).')
 
 @app.route('/ocr_upload')
 def ocr_upload():
@@ -1957,9 +2094,10 @@ def train_image():
             languages=preferred_ocr_codes,
         )
         
+        text_data = (text_data or '').strip()
         if text_data:
             results['raw_text'] = text_data
-            results['cleaned_text'] = text_data.lower()
+            results['cleaned_text'] = text_data
         
         # Handle custom medication data from training form
         medicine_names = request.form.getlist('medicine_name[]')
@@ -1991,17 +2129,27 @@ def train_image():
             results['routes'] = [med['instruction'] for med in custom_prescriptions]
             results['durations'] = [med['duration'] for med in custom_prescriptions]
         else:
-            # Always ensure structured prescriptions are up to date for trained results
             results['structured_prescriptions'] = build_structured_prescriptions(results)
             results['medication_count'] = len(results['structured_prescriptions'])
-        
+
+        from ocr_module.image_trainer import normalize_trained_results
+        results = normalize_trained_results(results)
+        results['confidence'] = 100.0
+
         trainer = ImageTrainer()
         success = trainer.add_training_sample(filepath, results)
         
         if success:
-            return render_template('training_success.html', 
-                                  filename=unique_filename, 
-                                  message="Image successfully trained")
+            results['patient_name'] = session.get('username', 'Training')
+            results['doctor_name'] = 'Training Mode'
+            results['date'] = datetime.datetime.now(INDIA_TZ).strftime('%Y-%m-%d')
+            results['accuracy'] = evaluate_accuracy(results)
+            flash('Image trained successfully. This is how it will appear on upload.', 'success')
+            return render_template(
+                'results.html',
+                results=results,
+                original_image=url_for('uploaded_file', filename=unique_filename),
+            )
         else:
             return render_template('training_success.html', 
                                   error="Failed to train image", 

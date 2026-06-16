@@ -1,0 +1,329 @@
+{
+    "image_path": "d:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\1779375473_pre3.jpeg",
+    "preprocessed_image": "d:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1779375473_pre3.jpeg",
+    "raw_text": "3e14 \u20acfed27\nsi snovialea& udla\nai@m %da\nstaaruda\n484\nBHMScCM\nEAMS\nM\nRako 1i0\nRegNa [46728-AI\nRerN0 PRtun\n4l:24714,41a. \u20ac74r\n57t (0330) ?yGopss\n742: Prachi Yadav (20Y, Female)\n9021761870\nDate\n25-Sep-2025 06.14\nTime\nPM\nComplaints: FEVER\nCOLD\nCOUGH\nVOHMING\nLOOSE MOTION\nDiagnosis; URII\nK\nMedicine\nDozage\nFreq:\nDuration\n1) PAN Hd\nBefore Food\nDally\n5 Days\nComposition\nDomperidone 30 #G\ncantodtatok 40 HG\nTiming\nBelore brcaktast\n2) HEtRODOX LB 100 MG CAPSULE\n02\nAlter Food\nDally\nComposition\nDoxycrcine 100 HG\nLxtobkan $ Bibon Sporcs\nTming\nAter breaklost;\nLAten dinne\n3)\nHIFEN ZOOMG TABLET\nAter Food\nDally\nComposition\nCelixime ?00 KG\nTiming\nAlter breakfost,\nNter dinncr\n4)\nXPECT LS\nComposition\nAmbroxol J0 MG\nAftcr Food\nDally\nTiming\nGua tcnerin 50 HG + Lerosalbutamol ! MG\nAtter breaktost;\nAter dinner\n5)\nBROLEM TAB\nAtter dinner\nAfter Food\nDally\nDays\nNAMSTER P\nTiming\nAfter breakfasti\nKAer\nAfter Food\nDaily\ndinner\nSol\n5 Hael ElAL\n5\nTiming\nQly\nDays\nDays\nDays\nTiming\nDays\n40 (\nPottd [",
+    "cleaned_text": "3e14 \u20acfed27\nsi snovialea& udla\nai@m %da\nstaaruda\n484\nBHMScCM\nEAMS\nM\nRako 1i0\nRegNa [46728-AI\nRerN0 PRtun\n4l:24714,41a. \u20ac74r\n57t (0330) ?yGopss\n742: Prachi Yadav (20Y, Female)\n9021761870\nDate\n25-Sep-2025 06.14\nTime\nPM\nComplaints: FEVER\nCOLD\nCOUGH\nVOHMING\nomeprazole ibuprofen\nDiagnosis; URII\nK\nMedicine\nDozage\nFreq:\nDuration\n1) PAN Hd\nBefore Food\nonce once daily\n5 Days\nComposition\ndomperidone 30 #G\ncantodtatok 40 HG\nTiming\nBelore brcaktast\n2) HEtRODOX LB 100 MG CAPSULE\n02\nAlter Food\nonce once daily\nComposition\ndoxycycline 100 HG\nLxtobkan $ Bibon Sporcs\nTming\nAter breaklost;\nLAten dinne\n3)\naceclofenac ZOOMG rabeprazole\nAter Food\nonce once daily\nComposition\ncefixime ?00 KG\nTiming\nAlter breakfost,\nNter dinncr\n4)\nXPECT LS\nComposition\nAmbroxol J0 MG\nAftcr Food\nonce once daily\nTiming\nGua tcnerin 50 HG + albuterol ! MG\nAtter breaktost;\nAter dinner\n5)\nBROLEM TAB\nAtter dinner\nAfter Food\nonce once daily\nDays\nNAMSTER P\nTiming\nAfter breakfasti\nKAer\nAfter Food\nonce daily\ndinner\nsublingual\n5 Hael ElAL\n5\nTiming\nQly\nDays\nDays\nDays\nTiming\nDays\n40 (\nPottd [",
+    "medications": [
+        "Staaruda",
+        "Ygopss",
+        "Hetrodox Lb",
+        "doxycycline",
+        "EAMS",
+        "FEVER",
+        "COLD",
+        "COUGH",
+        "VOHMING",
+        "URII",
+        "ZOOMG",
+        "XPECT",
+        "BROLEM",
+        "NAMSTER"
+    ],
+    "dosages": [
+        "484",
+        "728",
+        "100 mg",
+        "100",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "frequencies": [
+        "Not mentioned",
+        "Not mentioned",
+        "once daily",
+        "once daily",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "routes": [
+        "Not mentioned",
+        "Not mentioned",
+        "Capsule",
+        "Capsule",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "durations": [
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "medicines_strict": {
+        "medicines": [
+            {
+                "name": "Staaruda",
+                "strength": "484",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "staaruda"
+            },
+            {
+                "name": "Ygopss",
+                "strength": "728",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "ygopss"
+            },
+            {
+                "name": "Hetrodox Lb",
+                "strength": "100 mg",
+                "frequency": "once daily",
+                "duration": "Not mentioned",
+                "route": "Capsule",
+                "evidence": "hetrodox lb"
+            },
+            {
+                "name": "doxycycline",
+                "strength": "100",
+                "frequency": "once daily",
+                "duration": "Not mentioned",
+                "route": "Capsule",
+                "evidence": "doxycycline"
+            },
+            {
+                "name": "EAMS",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "EAMS"
+            },
+            {
+                "name": "FEVER",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "FEVER"
+            },
+            {
+                "name": "COLD",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "COLD"
+            },
+            {
+                "name": "COUGH",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "COUGH"
+            },
+            {
+                "name": "VOHMING",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "VOHMING"
+            },
+            {
+                "name": "URII",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "URII"
+            },
+            {
+                "name": "ZOOMG",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "ZOOMG"
+            },
+            {
+                "name": "XPECT",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "XPECT"
+            },
+            {
+                "name": "BROLEM",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "BROLEM"
+            },
+            {
+                "name": "NAMSTER",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "NAMSTER"
+            }
+        ]
+    },
+    "confidence": 59.5788163689317,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "handwriting",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": true,
+    "handwriting_attempted": true,
+    "text_quality": 0.7798135198135199,
+    "medical_signal": 0.18604651162790697,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1779375473_pre3.jpeg",
+    "accuracy": {
+        "overall_accuracy": 59.5788163689317,
+        "character_accuracy": 59.5788163689317,
+        "word_accuracy": 59.5788163689317,
+        "medication_accuracy": 59.5788163689317
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Staaruda",
+            "dosage": "484",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Ygopss",
+            "dosage": "728",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Hetrodox Lb",
+            "dosage": "100 mg",
+            "frequency": "once daily",
+            "duration": "Not mentioned",
+            "instruction": "Capsule"
+        },
+        {
+            "name": "Doxycycline",
+            "dosage": "100",
+            "frequency": "once daily",
+            "duration": "Not mentioned",
+            "instruction": "Capsule"
+        },
+        {
+            "name": "Eams",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Fever",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Cold",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Cough",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Vohming",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Urii",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Zoomg",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Xpect",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Brolem",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Namster",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        }
+    ],
+    "medication_count": 14,
+    "patient_name": "Aditay",
+    "doctor_name": "Prachi",
+    "date": "2026-05-21",
+    "user_id": 7,
+    "language_labels": [
+        "English"
+    ]
+}

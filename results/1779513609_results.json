@@ -1,0 +1,50 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1779513609_prachi.png",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1779513609_prachi.png",
+    "raw_text": ": ve h : ay,\ntr ao ;\ntd. Lor lox OF CL)\n\\- f\n\u2014 Gut ol cs Ce \u00a9\n| \u2014 F\n4\n- Ma fed set \u2014\u2014 (6)\n|\nZ,\n- Awd) a) A\nmS at.",
+    "cleaned_text": ": ve h : ay,\ntr ao ;\ntd. Lor lox OF CL)\n\\- f\n\u2014 Gut ol cs Ce \u00a9\n| \u2014 F\n4\n- Ma fed sertraline \u2014\u2014 (6)\n|\nZ,\n- Awd) a) A\nmS at.",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 84.63636363636364,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": true,
+    "paddleocr_used": false,
+    "handwriting_detected": false,
+    "handwriting_attempted": true,
+    "text_quality": 0.5890167158308751,
+    "medical_signal": 0.24,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1779513609_prachi.png",
+    "accuracy": {
+        "overall_accuracy": 84.63636363636364,
+        "character_accuracy": 84.63636363636364,
+        "word_accuracy": 84.63636363636364,
+        "medication_accuracy": 84.63636363636364
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Sertraline",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 1,
+    "patient_name": "prachi",
+    "doctor_name": "dr.aditya",
+    "date": "2026-05-23",
+    "user_id": 7,
+    "language_labels": [
+        "English"
+    ]
+}

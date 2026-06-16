@@ -1,0 +1,39 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1780417423_pre3.jpeg",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1780417423_pre3.jpeg",
+    "raw_text": "a a OT Sr Lo etas\n: | . :\nx /. sarod aetmanads  sitaundtacts :\n. 4 Sra - BIMS, COM BASES. MENS. \u201c\nRei Reg. No. 19349 Regio. L2eeAL == Beg, No. PREETI (202 ;\n/ iat: Ser CTH, UN Vat. es TAT, BIEL. TATA. (0230) 2e 60999\na eed\na a\n7742: Prachl Yadav (20y;.Female) - 9021761870 Date & + 25-Sep-2025 06:14\nTime PM\nee\nConiplaints: FEVER , COLD , COUGH , VOMITING , LOOSE MOTION\nN\nMedicine Dosage Timing ~ Ereq. -'Duration Qty\n1) PAN HD * i- 0- 9 Before Food - Dally -'5'Days 5\nConiposition : Domperidene 30 MG + Pantoprazole 40 MG\nTiming :_ 1 Before breakfast \u2018\n2) HETRODOX:LB 100 MGCAPSULE\u00ae i- 0- 1 After Food - Dally - 5 Days 6\nComposition + Doxycycline 100 MG + Lacobscitus 5 Bdbon Spores /\n_\u2014_Jiming :_1 After breakfast, 1 After dinner f\n3) HIFEN 200MG TABLET * 1l- 0-1 After-Foad - Dally\u2019 - 5 Days, 6\nComposition : Cefixime.200 MG > 3\nTiming.: 2 After breakfast, 1 After dinner\n4) XPECT Ls * Im O- 1 After Food - Dally - 5.Days- BY\nComposition + Ambroxol 30 MG + Guaifenesin 50 MG + Levosaibutamol 1 MG\nTiming: :_1 After breakfast, 1 After dinner\nBy) RROLEM TAR Rn\n5) BROLEM TAB * O- O- 1 After Food - Dally. ~ 5 Days 5\nTiming : 1 After dinner\n6) NAMSTER P * i- O- 1 After Food - Daily - 5 Days. 6.\nTiming + 1. After breakfast, 1 After dinner\nSee",
+    "cleaned_text": "a a OT Sr Lo etas\n: | . :\nx /. sarod aetmanads  sitaundtacts :\n. 4 Sra - BIMS, COM BASES. MENS. \u201c\nRei Reg. No. 19349 Regio. L2eeAL == Beg, No. PREETI (202 ;\n/ iat: sertraline CTH, UN Vat. es TAT, BIEL. TATA. (0230) 2e 60999\na eed\na a\n7742: Prachl Yadav (20y;.Female) - 9021761870 Date & + 25-Sep-2025 06:14\nTime PM\nee\nConiplaints: FEVER , COLD , COUGH , VOMITING , omeprazole ibuprofen\nN\nMedicine Dosage Timing ~ Ereq. -'Duration Qty\n1) PAN HD * i- 0- 9 Before Food - once once daily -'5'Days 5\nConiposition : domperidone 30 MG + pantoprazole 40 MG\nTiming :_ 1 Before breakfast \u2018\n2) HETRODOX:LB 100 MGCAPSULE\u00ae i- 0- 1 After Food - once once daily - 5 Days 6\nComposition + doxycycline 100 MG + Lacobscitus 5 Bdbon Spores /\n_\u2014_Jiming :_1 After breakfast, 1 After dinner f\n3) aceclofenac 200MG rabeprazole * 1l- 0-1 After-Foad - once once daily\u2019 - 5 Days, 6\nComposition : cefixime.200 MG > 3\nTiming.: 2 After breakfast, 1 After dinner\n4) XPECT Ls * Im O- 1 After Food - once once daily - 5.Days- BY\nComposition + Ambroxol 30 MG + Guaifenesin 50 MG + Levosaibutamol 1 MG\nTiming: :_1 After breakfast, 1 After dinner\nBy) RROLEM TAR Rn\n5) BROLEM TAB * O- O- 1 After Food - once once daily. ~ 5 Days 5\nTiming : 1 After dinner\n6) NAMSTER P * i- O- 1 After Food - once daily - 5 Days. 6.\nTiming + 1. After breakfast, 1 After dinner\nSee",
+    "medications": [
+        "ibuprofen",
+        "omeprazole",
+        "sertraline",
+        "pantoprazole",
+        "doxycycline",
+        "cefixime",
+        "rabeprazole",
+        "domperidone",
+        "aceclofenac",
+        "Sep",
+        "Ambroxol",
+        "Guaifenesin",
+        "Levosaibutamol"
+    ],
+    "dosages": [
+        "1 MG",
+        "200 MG",
+        "50 MG",
+        "100 MG",
+        "30 MG",
+        "40 MG",
+        "200MG"
+    ],
+    "frequencies": [
+        "once daily"
+    ],
+    "routes": [],
+    "confidence": 98.0,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract"
+}

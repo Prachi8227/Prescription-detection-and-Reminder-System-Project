@@ -1,0 +1,19 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1781275149_WhatsApp_Image_2025-11-29_at_8.37.36_PM.jpeg",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1781275149_WhatsApp_Image_2025-11-29_at_8.37.36_PM.jpeg",
+    "raw_text": "as ICDL II ee ee a SC, See cee\na oa ee Se\nSoy pre\nSN a\nSESS : , 4 \u2014\nSeay Sw \\ \u2018 eee\n= - \u00b0 lesen ee\nSes (eet eeeeoee\nSantas perineal Teae\nBe tity eee ee\nSN Poetic\nSEN eee\nSENG eee renter.\nSy err an er eeen ee\nSete : veieeenrees\neee irene\nRee y tite\n$ \u2014 i A} :\n\ni \u2014\u2014\u2014\u2014\noe ,\neset ==\neen one \u2014\nLeann \\ Pe\neS \\ Reese\n= \u2018 Ax\\ * Ses\neee 3 an! a -! A pease\n\n: . OPEN aN Dae\nae = Rates\nad dad \u2014\u2014\nae. 1. |i \u2122 se. .\u2014",
+    "cleaned_text": "as ICDL II ee ee a SC, See cee\na oa ee Se\nSoy pre\nSN a\nSESS : , 4 \u2014\nSeay Sw \\ \u2018 eee\n= - \u00b0 lesen ee\nSes (eet eeeeoee\nSantas perineal Teae\nBe tity eee ee\nSN Poetic\nSEN eee\nSENG eee renter.\nSy err an er eeen ee\nSete : veieeenrees\neee irene\nRee y tite\n$ \u2014 i A} :\n\ni \u2014\u2014\u2014\u2014\noe ,\neset ==\neen one \u2014\nLeann \\ Pe\neS \\ Reese\n= \u2018 Ax\\ * Ses\neee 3 an! a -! A pease\n\n: . OPEN aN Dae\nae = Rates\nad dad \u2014\u2014\nae. 1. |i \u2122 se. .\u2014",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "structured_prescriptions": [],
+    "medication_count": 0,
+    "confidence": 98.0,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "extraction_mode": "general"
+}

@@ -1,0 +1,26 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1780295320_WhatsApp_Image_2026-06-01_at_11.55.09_AM.jpeg",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1780295320_WhatsApp_Image_2026-06-01_at_11.55.09_AM.jpeg",
+    "raw_text": "AR",
+    "cleaned_text": "AR",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 85.04545454545455,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": false,
+    "handwriting_attempted": true,
+    "text_quality": 0.8033333333333333,
+    "medical_signal": 0.0,
+    "ocr_mode": "auto"
+}

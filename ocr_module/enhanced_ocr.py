@@ -1,405 +1,96 @@
-"""
-Enhanced OCR module for prescription text extraction.
-
-Improvements:
-- Image preprocessing: grayscale, noise removal (fastNlMeans + optional bilateral),
-  Gaussian blur, adaptive/Otsu thresholding, resizing for accuracy, morphology.
-- Pytesseract: --oem 3 --psm 6 (and fallback PSM modes), multi-language support.
-- Error handling and logging for production debugging.
-- EasyOCR/PaddleOCR used for handwriting and when Tesseract output is poor.
-
-Handwritten text: Use EasyOCR or PaddleOCR (force_handwriting / force_paddleocr).
-Low-resolution: Preprocessing upscales small images and applies sharpening;
-  for very low-res, consider super-resolution (e.g. OpenCV DNN or ESRGAN) then OCR.
-"""
 import os
-import logging
 import cv2
 import numpy as np
 import json
 import re
 from PIL import Image
-import pytesseract  # type: ignore
+import pytesseract
+
+
+# OCR quality thresholds
+HANDWRITING_QUALITY_THRESHOLD = 0.70
+PRINTED_TEXT_QUALITY_THRESHOLD = 0.85
+
 import difflib
+import spacy
 from fuzzywuzzy import fuzz, process
 from skimage import exposure, filters
 from skimage.filters import unsharp_mask
 from skimage.morphology import disk
 
-# Production-ready logging: level INFO for normal runs, DEBUG for troubleshooting
-logger = logging.getLogger(__name__)
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("[%(name)s] %(levelname)s: %(message)s"))
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-
-_easyocr_import_error = None
 try:
-    import easyocr  # type: ignore
-except Exception as e:
-    easyocr = None
-    _easyocr_import_error = e
-
-_paddleocr_import_error = None
-try:
-    from paddleocr import PaddleOCR  # type: ignore
-    PADDLEOCR_AVAILABLE = True
-except Exception as e:
-    PaddleOCR = None
-    PADDLEOCR_AVAILABLE = False
-    _paddleocr_import_error = e
-
-try:
-    import torch
-    EASY_OCR_USE_GPU = torch.cuda.is_available()
-    PADDLEOCR_USE_GPU = torch.cuda.is_available() if PADDLEOCR_AVAILABLE else False
-except Exception:
-    EASY_OCR_USE_GPU = False
-    PADDLEOCR_USE_GPU = False
-
-# Log OCR engine availability at import (helps debug "no text" issues)
-def _log_ocr_availability():
-    if easyocr is None:
-        logger.warning("EasyOCR not loaded. Handwriting OCR will be skipped. %s", _easyocr_import_error or "Install: pip install easyocr")
-    else:
-        logger.info("EasyOCR available for handwriting OCR.")
-    if not PADDLEOCR_AVAILABLE and _paddleocr_import_error:
-        logger.debug("PaddleOCR not loaded: %s", _paddleocr_import_error)
-_log_ocr_availability()
-
-# Try to import and load spacy model for medical NER (optional)
-try:
-    import spacy
+    # Try to load spacy model for medical NER
+    nlp = spacy.load("en_core_sci_md")
+except:
     try:
-        # Try to load spacy model for medical NER
-        nlp = spacy.load("en_core_sci_md")
+        # Fall back to standard English model
+        nlp = spacy.load("en_core_web_sm")
     except:
-        try:
-            # Fall back to standard English model
-            nlp = spacy.load("en_core_web_sm")
-        except:
-            nlp = None
-            print("Warning: Spacy model not loaded. Using fallback text processing.")
-except Exception as e:
-    nlp = None
-    print(f"Warning: Spacy not available ({e}). Using fallback text processing.")
+        nlp = None
+        print("Warning: Spacy model not loaded. Using fallback text processing.")
 
-# Initialize Tesseract OCR (override via env TESSERACT_CMD if needed)
-_tesseract_cmd = os.environ.get("TESSERACT_CMD")
-if _tesseract_cmd:
-    pytesseract.pytesseract.tesseract_cmd = _tesseract_cmd
-else:
-    # Default Windows path; Linux/Mac often find tesseract in PATH
-    _default_paths = [
+# Initialize Tesseract OCR - try PATH first, then common Windows install locations
+def _configure_tesseract():
+    import shutil
+    tesseract_path = shutil.which('tesseract')
+    if tesseract_path:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        return
+    common_paths = [
         r'C:\Program Files\Tesseract-OCR\tesseract.exe',
         r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
-        '/usr/bin/tesseract',
-        '/usr/local/bin/tesseract',
+        r'C:\Users\{}\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'.format(os.getenv('USERNAME', '')),
     ]
-    for _p in _default_paths:
-        if os.path.isfile(_p):
-            pytesseract.pytesseract.tesseract_cmd = _p
-            break
-    else:
-        logger.warning("Tesseract executable not found in default paths; ensure it is in PATH.")
+    for path in common_paths:
+        if os.path.exists(path):
+            pytesseract.pytesseract.tesseract_cmd = path
+            return
+    print("Warning: Tesseract not found. Please install Tesseract OCR.")
 
-DEFAULT_LANGUAGE_CODES = ["eng"]
+try:
+    _configure_tesseract()
+    version = pytesseract.get_tesseract_version()
+    print(f'Tesseract ready ({version}) at {pytesseract.pytesseract.tesseract_cmd}')
+except Exception as e:
+    print(f"Warning: Tesseract verification failed: {e}")
+
+DEFAULT_TESSERACT_LANG = "eng"
 BASE_TESSERACT_CONFIGS = [
     ("--oem 3 --psm 6", 0.98),
     ("--oem 3 --psm 11", 0.92),
-    ("--oem 1 --psm 4", 0.9),
-    ("--oem 3 --psm 5", 0.88),
+    ("--oem 1 --psm 4", 0.90),
+    ("--oem 3 --psm 3", 0.85),
 ]
 
-HANDWRITING_QUALITY_THRESHOLD = 0.6
-HANDWRITING_SELECTION_MARGIN = 0.05
-HANDWRITING_MIN_SCORE = 0.45
-MEDICAL_SIGNAL_THRESHOLD = 0.08
-OCR_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ocr_config.json')
-DEFAULT_RUNTIME_OCR_SETTINGS = {
-    'mode': 'auto',
-    'quality_threshold': HANDWRITING_QUALITY_THRESHOLD,
-    'medical_signal_threshold': MEDICAL_SIGNAL_THRESHOLD,
-    'selection_margin': HANDWRITING_SELECTION_MARGIN,
-    'min_score': HANDWRITING_MIN_SCORE,
-}
-_runtime_settings_cache = None
-_runtime_settings_mtime = None
 
-EASYOCR_LANGUAGE_MAP = {
-    "eng": "en",
-    "hin": "hi",
-    "mar": "mr",
-    "kan": "kn",
-    "tam": "ta",
-    "tel": "te",
-    "mal": "ml",
-    "guj": "gu",
-    "ben": "bn",
-}
-
-_easyocr_readers = {}
-_paddleocr_reader = None
-
-
-def _load_runtime_settings():
-    global _runtime_settings_cache, _runtime_settings_mtime
-    try:
-        mtime = os.path.getmtime(OCR_CONFIG_PATH)
-    except OSError:
-        mtime = None
-
-    if _runtime_settings_cache is not None and _runtime_settings_mtime == mtime:
-        return _runtime_settings_cache
-
-    data = {}
-    if mtime is not None:
-        try:
-            with open(OCR_CONFIG_PATH, 'r') as f:
-                file_data = json.load(f)
-            if isinstance(file_data, dict):
-                data = file_data
-        except Exception as exc:
-            print(f"OCR settings load error: {exc}")
-
-    merged = DEFAULT_RUNTIME_OCR_SETTINGS.copy()
-    for key in merged:
-        if key in data:
-            merged[key] = data[key]
-
-    _runtime_settings_cache = merged
-    _runtime_settings_mtime = mtime
-    return merged
-
-
-def _sanitize_language_codes(language_codes=None):
-    if language_codes is None:
-        return DEFAULT_LANGUAGE_CODES.copy()
-
+def normalize_tesseract_languages(language_codes):
+    """Return a list of valid Tesseract language codes (defaults to English)."""
+    if not language_codes:
+        return [DEFAULT_TESSERACT_LANG]
     if isinstance(language_codes, str):
         language_codes = [language_codes]
-
-    cleaned = []
+    normalized = []
     seen = set()
-    for code in language_codes:
-        normalized = (code or "").strip().lower()
-        if not normalized:
+    for raw in language_codes:
+        if raw is None:
             continue
-        if normalized not in seen:
-            cleaned.append(normalized)
-            seen.add(normalized)
+        code = str(raw).strip().lower()
+        if code and code not in seen:
+            normalized.append(code)
+            seen.add(code)
+    return normalized or [DEFAULT_TESSERACT_LANG]
 
-    return cleaned or DEFAULT_LANGUAGE_CODES.copy()
 
-
-def build_tesseract_configs(language_codes=None):
-    codes = _sanitize_language_codes(language_codes)
+def build_tesseract_config_list(language_codes=None):
+    """Build weighted Tesseract config strings for the requested languages."""
+    codes = normalize_tesseract_languages(language_codes)
     lang_option = f"-l {'+'.join(codes)}"
     return [(f"{base} {lang_option}", weight) for base, weight in BASE_TESSERACT_CONFIGS]
-
-
-def _map_languages_for_easyocr(language_codes=None):
-    codes = _sanitize_language_codes(language_codes)
-    mapped = []
-    for code in codes:
-        easy_code = EASYOCR_LANGUAGE_MAP.get(code)
-        if easy_code and easy_code not in mapped:
-            mapped.append(easy_code)
-    if not mapped:
-        mapped.append("en")
-    return mapped
-
-
-def _get_easyocr_reader(language_codes):
-    if easyocr is None:
-        return None
-    key = tuple(language_codes)
-    if key in _easyocr_readers:
-        return _easyocr_readers[key]
-    try:
-        # Use gpu=False to avoid CUDA/GPU issues; set to EASY_OCR_USE_GPU if you have a working GPU
-        reader = easyocr.Reader(language_codes, gpu=False, verbose=False)
-        _easyocr_readers[key] = reader
-        return reader
-    except Exception as e:
-        logger.warning("EasyOCR Reader creation failed for %s: %s", language_codes, e)
-        return None
-
-
-def run_handwriting_ocr(image_path, language_codes=None):
-    """Extract text using EasyOCR (good for handwritten and mixed content)."""
-    if easyocr is None:
-        logger.warning("EasyOCR not available; install with: pip install easyocr")
-        return "", 0.0
-
-    mapped_codes = _map_languages_for_easyocr(language_codes)
-    # Load image: numpy array avoids path/encoding issues on Windows
-    img = None
-    if isinstance(image_path, str) and os.path.isfile(image_path):
-        img = cv2.imread(image_path)
-        if img is None:
-            try:
-                from PIL import Image as PILImage
-                pil_img = PILImage.open(image_path).convert("RGB")
-                img = np.array(pil_img)
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            except Exception as e:
-                logger.warning("EasyOCR: could not load image (cv2 and PIL failed): %s", e)
-        else:
-            logger.debug("EasyOCR: loaded image %s shape %s", image_path, img.shape)
-    elif isinstance(image_path, np.ndarray):
-        img = image_path
-
-    if img is None:
-        logger.warning("EasyOCR: could not load image from %s", image_path)
-        return "", 0.0
-
-    try:
-        reader = _get_easyocr_reader(mapped_codes)
-        if reader is None:
-            logger.warning("EasyOCR: Reader not available for %s", mapped_codes)
-            return "", 0.0
-        # For handwriting, paragraph=False (line-by-line) often works better first
-        easy_results = reader.readtext(img, detail=1, paragraph=False)
-        if not easy_results:
-            easy_results = reader.readtext(img, detail=1, paragraph=True)
-    except Exception as exc:
-        logger.warning("EasyOCR readtext error: %s", exc, exc_info=True)
-        return "", 0.0
-
-    if not easy_results:
-        return "", 0.0
-
-    lines = []
-    confidences = []
-    for entry in easy_results:
-        text = None
-        confidence = 0.5
-
-        if isinstance(entry, (list, tuple)):
-            if len(entry) == 3:
-                _, text, confidence = entry
-            elif len(entry) >= 2:
-                text = entry[1] if isinstance(entry[1], str) else entry[0]
-                try:
-                    confidence = float(entry[-1])
-                except Exception:
-                    confidence = 0.5
-        elif isinstance(entry, str):
-            text = entry
-
-        if not isinstance(text, str):
-            continue
-
-        cleaned = text.strip()
-        if cleaned:
-            lines.append(cleaned)
-            confidences.append(float(confidence))
-
-    combined_text = "\n".join(lines).strip()
-    if confidences:
-        avg_confidence = sum(confidences) / len(confidences)
-        avg_confidence = max(0.0, min(avg_confidence, 1.0))
-    else:
-        avg_confidence = 0.0
-    return combined_text, avg_confidence
-
-
-def _get_paddleocr_reader(language_codes=None):
-    """Get or create PaddleOCR reader instance"""
-    global _paddleocr_reader
-    
-    if not PADDLEOCR_AVAILABLE or PaddleOCR is None:
-        return None
-    
-    if _paddleocr_reader is None:
-        try:
-            # Map language codes for PaddleOCR (uses 'en', 'ch', 'korean', etc.)
-            lang = 'en'  # Default to English
-            if language_codes:
-                # Map Tesseract codes to PaddleOCR codes
-                lang_map = {
-                    'eng': 'en',
-                    'hin': 'hi',  # Hindi
-                    'ch': 'ch',   # Chinese
-                    'korean': 'korean',
-                }
-                # Use first language code
-                first_lang = language_codes[0] if language_codes else 'eng'
-                lang = lang_map.get(first_lang, 'en')
-            
-            _paddleocr_reader = PaddleOCR(
-                use_angle_cls=True,
-                lang=lang,
-                use_gpu=PADDLEOCR_USE_GPU,
-                show_log=False
-            )
-        except Exception as e:
-            print(f"PaddleOCR initialization error: {str(e)}")
-            return None
-    
-    return _paddleocr_reader
-
-
-def run_paddleocr(image_path, language_codes=None):
-    """Run PaddleOCR on an image using OpenCV preprocessing"""
-    if not PADDLEOCR_AVAILABLE or PaddleOCR is None:
-        return "", 0.0
-    
-    try:
-        reader = _get_paddleocr_reader(language_codes)
-        if reader is None:
-            return "", 0.0
-        
-        # Use OpenCV to read and preprocess image
-        img = cv2.imread(image_path)
-        if img is None:
-            return "", 0.0
-        
-        # PaddleOCR can work with numpy array directly
-        # Format: [[[bbox], (text, confidence)], ...]
-        results = reader.ocr(img, cls=True)
-        
-        if not results or not results[0]:
-            return "", 0.0
-        
-        lines = []
-        confidences = []
-        
-        for line in results[0]:
-            if line and len(line) >= 2:
-                # line[1] is (text, confidence)
-                text = line[1][0] if isinstance(line[1], (list, tuple)) and len(line[1]) > 0 else ""
-                confidence = line[1][1] if isinstance(line[1], (list, tuple)) and len(line[1]) > 1 else 0.5
-                
-                if text and isinstance(text, str):
-                    cleaned = text.strip()
-                    if cleaned:
-                        lines.append(cleaned)
-                        confidences.append(float(confidence))
-        
-        combined_text = "\n".join(lines).strip()
-        if confidences:
-            avg_confidence = sum(confidences) / len(confidences)
-            avg_confidence = max(0.0, min(avg_confidence, 1.0))
-        else:
-            avg_confidence = 0.0
-        
-        return combined_text, avg_confidence
-        
-    except Exception as exc:
-        print(f"PaddleOCR error: {str(exc)}")
-        return "", 0.0
-
-
 # Medical dictionary for common prescription terms
 MEDICATION_DICT = {
     # Common medications - Updated for Indian market
-    "amoxicillin": ["amox", "amoxil", "amoxicil", "amoxicilin", "mox", "novamox", "almoxi", "wymox", "moxikind", "moxikind cv", "moxikind-cv"],
-    "amoxicillin + clavulanic acid": ["moxikind cv", "moxikind-cv", "moxikindcv", "augmentin", "moxclav", "megaclox", "clavam", "hiclav", "clavum", "amoxiclav"],
-    "paracetamol": ["paracet", "parcetamol", "acetaminophen", "tylenol", "crocin", "panadol", "dolo", "metacin", "calpol", "sumo", "febrex", "acepar", "pacimol", "fepanil"],
-    "dextromethorphan": ["tuss dx", "tuss-dx", "tussdx", "tuss", "dx"],
+    "amoxicillin": ["amox", "amoxil", "amoxicil", "amoxicilin", "mox", "novamox", "almoxi", "wymox"],
+    "paracetamol": ["paracet", "parcetamol", "acetaminophen", "tylenol", "crocin", "panadol", "dolo", "metacin", "calpol", "sumo", "febrex", "acepar", "pacimol"],
     "ibuprofen": ["ibuprofin", "ibu", "ibuprofen", "advil", "motrin", "nurofen", "brufen", "ibugesic", "combiflam"],
     "aspirin": ["asa", "acetylsalicylic", "aspr", "disprin", "ecotrin", "bayer", "loprin", "delisprin", "colsprin"],
     "lisinopril": ["lisin", "prinivil", "zestril", "qbrelis", "listril", "hipril", "zestopril"],
@@ -531,1016 +222,477 @@ MEDICATION_DICT = {
     "shake well": ["shake bottle", "mix well", "agitate"],
 }
 
-COMMON_PRESCRIPTION_TERMS = {
-    "tab",
-    "tabs",
-    "tablet",
-    "tablets",
-    "cap",
-    "caps",
-    "capsule",
-    "capsules",
-    "syr",
-    "syrup",
-    "spray",
-    "nasal",
-    "drops",
-    "ointment",
-    "cream",
-    "gel",
-    "suspension",
-    "injection",
-    "inj",
-    "apply",
-    "take",
-    "before",
-    "after",
-    "meals",
-    "meal",
-    "daily",
-    "night",
-    "morning",
-    "evening",
-    "noon",
-    "mg",
-    "ml",
-    "once",
-    "twice",
-    "thrice",
-    "spr",
-    "syp",
-    "spondex",
-    "spray",
-    "xylometazoline",
-    "nasal",
-    "spray",
-    "nasoclear",
-    "syrup",
-    "cv",
-    "xr",
-    "sr",
-    "plus",
-    "forte",
-}
-
-MEDICAL_SIGNAL_TERMS = set(term.lower() for term in COMMON_PRESCRIPTION_TERMS)
-for med_name, aliases in MEDICATION_DICT.items():
-    for token in re.findall(r'\b[a-z]+\b', med_name.lower()):
-        MEDICAL_SIGNAL_TERMS.add(token)
-    for alias in aliases:
-        for token in re.findall(r'\b[a-z]+\b', alias.lower()):
-            MEDICAL_SIGNAL_TERMS.add(token)
-
-def apply_medical_dictionary_correction(text):
-    """Apply medical dictionary correction to OCR text"""
+def apply_medical_dictionary_correction(text, medication_names=None):
+    """Light spelling correction for known medicine names only (avoids false positives)."""
     if not text:
         return text
-        
-    words = re.findall(r'\b\w+\b', text.lower())
+    if not medication_names:
+        return text
+
     corrected_text = text
-    
-    for word in words:
-        # Skip very short words or numbers
-        if len(word) < 3 or word.isdigit():
-            continue
-            
-        # Find the best match in our medication dictionary
-        best_match = None
-        best_score = 0
-        best_key = None
-        
-        for key, aliases in MEDICATION_DICT.items():
-            # Check the key itself
-            score = fuzz.ratio(word, key.lower())
-            if score > best_score and score > 75:  # Threshold of 75%
-                best_score = score
-                best_match = key
-                best_key = key
-                
-            # Check aliases
-            for alias in aliases:
-                score = fuzz.ratio(word, alias.lower())
-                if score > best_score and score > 75:  # Threshold of 75%
+    for name in medication_names:
+        tokens = [t for t in re.split(r'(\W+)', name) if t.strip() and re.search(r'\w', t)]
+        for token in tokens:
+            if len(token) < 4:
+                continue
+            best_match = None
+            best_score = 0
+            token_lower = token.lower()
+            for key, aliases in MEDICATION_DICT.items():
+                score = fuzz.ratio(token_lower, key.lower())
+                if score > best_score and score >= 88:
                     best_score = score
-                    best_match = key  # Use the standardized term, not the alias
-                    best_key = key
-        
-        if best_match and best_score > 75:
-            # Replace the word with the correct spelling, maintaining original case
-            pattern = re.compile(re.escape(word), re.IGNORECASE)
-            corrected_text = pattern.sub(best_match, corrected_text)
-    
+                    best_match = key
+                for alias in aliases:
+                    score = fuzz.ratio(token_lower, alias.lower())
+                    if score > best_score and score >= 88:
+                        best_score = score
+                        best_match = key
+            if best_match:
+                pattern = re.compile(re.escape(token), re.IGNORECASE)
+                corrected_text = pattern.sub(best_match, corrected_text, count=1)
     return corrected_text
 
-# ---------------------------------------------------------------------------
-# Image preprocessing for better OCR accuracy
-# ---------------------------------------------------------------------------
-# Min width/height (pixels) below which we upscale to improve Tesseract accuracy
-_MIN_EDGE_FOR_UPSCALE = 600
-# Target scale: ensure shortest edge at least this for printed text
-_TARGET_MIN_EDGE = 1200
-# Max edge to avoid huge memory use
-_MAX_EDGE = 3200
+
+# Lines that are NOT bold medicine rows (composition / timing sub-lines)
+_NON_MEDICINE_LINE_PREFIXES = (
+    "composition", "compesition", "timing", "medicina", "medicine dosage",
+    "nedicina", "complaints", "diagnosis", "reg.", "reg no",
+)
 
 
-def _ensure_grayscale(image: np.ndarray) -> np.ndarray:
-    """Convert to grayscale if needed."""
-    if len(image.shape) == 3:
-        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    return image
+def _is_non_medicine_line(text):
+    lower = (text or "").strip().lower()
+    if not lower:
+        return True
+    return any(lower.startswith(prefix) for prefix in _NON_MEDICINE_LINE_PREFIXES)
 
 
-def _resize_for_ocr(image: np.ndarray) -> np.ndarray:
+def _extract_strength_from_name(name):
+    match = re.search(r"(\d+[\.\d]*\s*(?:MG|MCG|ML|G|GM))\b", name, re.IGNORECASE)
+    if match:
+        return re.sub(r"\s+", " ", match.group(1).upper())
+    return None
+
+
+def _parse_prescription_row_tail(tail):
+    """Parse dosage / frequency / duration from the table columns after the medicine name."""
+    dosage = None
+    frequency = None
+    duration = None
+    if not tail:
+        return dosage, frequency, duration
+
+    dose_match = re.search(
+        r"(\d+[\s\-=]+(?:\d+[\s\-=]+)+\d+|\d+\s*[\-–]\s*\d+[\s\-=]+\d+)",
+        tail,
+        re.IGNORECASE,
+    )
+    if dose_match:
+        dosage = re.sub(r"\s+", "", dose_match.group(1).replace("=", "-"))
+
+    if re.search(r"before\s+(?:food|breakfast)", tail, re.IGNORECASE):
+        frequency = "Before food"
+    elif re.search(r"after\s+(?:food|dinner|lunch|breakfast)", tail, re.IGNORECASE):
+        frequency = "After food"
+
+    if re.search(r"\b(?:daily|dally)\b", tail, re.IGNORECASE):
+        frequency = f"{frequency} - Daily" if frequency else "Daily"
+
+    duration_match = re.search(r"(\d+)\s*\.?\s*days?", tail, re.IGNORECASE)
+    if duration_match:
+        duration = f"{duration_match.group(1)} days"
+
+    return dosage, frequency, duration
+
+
+def extract_table_prescription_medicines(text):
     """
-    Resize image for better accuracy: upscale small images so Tesseract has
-    enough resolution; cap max size to avoid OOM. Low-res images benefit most.
+    Extract bold medicine names from clinic prescription tables.
+    Format: 1) PAN HD * <dosage columns...>
+    Skips Composition:/Timing: sub-lines (non-bold, smaller text).
     """
-    h, w = image.shape[:2]
-    min_edge = min(h, w)
-    max_edge = max(h, w)
-    if min_edge >= _MIN_EDGE_FOR_UPSCALE and max_edge <= _MAX_EDGE:
-        return image
-    scale = 1.0
-    if min_edge < _MIN_EDGE_FOR_UPSCALE and min_edge > 0:
-        scale = max(scale, _TARGET_MIN_EDGE / min_edge)
-    if max_edge > _MAX_EDGE and max_edge > 0:
-        scale = min(scale, _MAX_EDGE / max_edge)
-    if scale == 1.0:
-        return image
-    new_w = int(round(w * scale))
-    new_h = int(round(h * scale))
-    return cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
-
-
-def preprocess_image_advanced(
-    image_path: str,
-    *,
-    denoise_strength: int = 10,
-    use_bilateral: bool = True,
-    blur_kernel: int = 1,
-    adaptive_block: int = 11,
-    adaptive_c: int = 2,
-    use_otsu_fallback: bool = True,
-    morph_kernel_size: int = 2,
-    save_dir: str | None = None,
-) -> dict | None:
-    """
-    Production-ready image preprocessing for OCR.
-
-    1. Load image and convert to grayscale (reduces noise, standard for Tesseract).
-    2. Resize: upscale small images for better accuracy; cap size for performance.
-    3. Noise removal: fastNlMeansDenoising (strong on text) + optional bilateral
-       (preserves edges while smoothing).
-    4. Optional light Gaussian blur (kernel 1 = none) to reduce salt-and-pepper.
-    5. Binarization: adaptive threshold (good for uneven lighting); Otsu fallback
-       for high contrast images.
-    6. Morphology: small open (remove thin noise) then optional dilate to close
-       character gaps.
-
-    Returns dict with keys: original, enhanced (path), processed_image (array),
-    and optionally enhanced_inverted (path) for inverted variant. Returns None
-    on error.
-    """
-    try:
-        image = cv2.imread(image_path)
-        if image is None:
-            logger.error("Failed to load image: %s", image_path)
-            return None
-
-        gray = _ensure_grayscale(image)
-        gray = _resize_for_ocr(gray)
-        logger.debug("Image shape after resize: %s", gray.shape)
-
-        # Noise removal: fastNlMeansDenoising is very effective for text
-        denoised = cv2.fastNlMeansDenoising(
-            gray, None, h=denoise_strength, templateWindowSize=7, searchWindowSize=21
-        )
-        if use_bilateral:
-            denoised = cv2.bilateralFilter(denoised, 9, 75, 75)
-
-        # Light blur only if kernel > 1 (reduces noise, can blur text if too strong)
-        if blur_kernel > 1 and blur_kernel % 2 == 1:
-            denoised = cv2.GaussianBlur(denoised, (blur_kernel, blur_kernel), 0)
-
-        # Adaptive thresholding: better for prescriptions with uneven lighting
-        if adaptive_block % 2 != 1:
-            adaptive_block += 1
-        thresh = cv2.adaptiveThreshold(
-            denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY, adaptive_block, adaptive_c
-        )
-        # Otsu fallback: use when image has bimodal intensity (e.g. clear text on white)
-        if use_otsu_fallback:
-            otsu_val, otsu_thresh = cv2.threshold(
-                denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-            )
-            # Prefer adaptive; optionally blend or choose by variance
-            if np.std(otsu_thresh) > np.std(thresh):
-                thresh = otsu_thresh
-
-        # Morphology: open (erode then dilate) removes small noise; dilate closes gaps
-        k = max(1, morph_kernel_size)
-        kernel = np.ones((k, k), np.uint8)
-        processed = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        processed = cv2.dilate(processed, np.ones((2, 2), np.uint8), iterations=1)
-
-        base_name = os.path.basename(image_path)
-        dir_name = save_dir or os.path.dirname(image_path)
-        enhanced_name = f"enhanced_{base_name}"
-        enhanced_path = os.path.join(dir_name, enhanced_name)
-        cv2.imwrite(enhanced_path, processed)
-        logger.debug("Saved enhanced image: %s", enhanced_path)
-
-        result = {
-            "original": image_path,
-            "enhanced": enhanced_path,
-            "processed_image": processed,
-        }
-
-        # Inverted variant (white text on black) helps in some cases
-        inverted = cv2.bitwise_not(processed)
-        inv_path = os.path.join(dir_name, f"enhanced_inv_{base_name}")
-        cv2.imwrite(inv_path, inverted)
-        result["enhanced_inverted"] = inv_path
-
-        return result
-    except Exception as e:
-        logger.exception("Image preprocessing failed for %s: %s", image_path, e)
-        return None
-
-
-def preprocess_image(image_path):
-    """
-    Simple and effective image preprocessing for prescription OCR.
-    Uses the advanced pipeline (grayscale, denoise, adaptive threshold, resize, morphology).
-    Returns dict with original, enhanced, processed_image, and optionally enhanced_inverted; or None on error.
-    """
-    try:
-        result = preprocess_image_advanced(image_path)
-        if result is None:
-            return None
-        return {
-            "original": result["original"],
-            "enhanced": result["enhanced"],
-            "processed_image": result["processed_image"],
-            "enhanced_inverted": result.get("enhanced_inverted"),
-        }
-    except Exception as e:
-        logger.exception("preprocess_image failed: %s", e)
-        return None
-
-def run_multiple_ocr_passes(image_data, language_codes=None):
-    """
-    Run multiple OCR passes with different preprocessing variants and Tesseract configs.
-    Uses enhanced, original, and optionally enhanced_inverted; each with multiple
-    --oem/--psm configs. Passes language_codes through to Tesseract for multi-language.
-    """
-    try:
-        configs = build_tesseract_configs(language_codes)
-        results = []
-        seen_variants = set()
-
-        # Prefer enhanced (preprocessed), then original; include inverted if available
-        ocr_targets = [
-            (image_data.get("enhanced"), 1.0),
-            (image_data.get("original"), 0.9),
-        ]
-        if image_data.get("enhanced_inverted"):
-            ocr_targets.append((image_data["enhanced_inverted"], 0.85))
-
-        for image_path, path_weight in ocr_targets:
-            if not image_path or not os.path.exists(image_path):
-                continue
-            for config, config_weight in configs:
-                result_text = extract_text_tesseract(
-                    image_path, config=config, language_codes=language_codes
-                )
-                normalized = re.sub(r"\s+", " ", result_text.strip().lower()) if result_text else ""
-                if normalized and normalized not in seen_variants:
-                    seen_variants.add(normalized)
-                    results.append((result_text.strip(), path_weight * config_weight))
-
-        # Legacy fallback: create inverted from enhanced if no precomputed inverted
-        if not results and image_data.get("enhanced"):
-            enhanced_img = cv2.imread(image_data["enhanced"])
-            if enhanced_img is not None:
-                inverted = cv2.bitwise_not(enhanced_img)
-                dir_name = os.path.dirname(image_data["enhanced"])
-                inverted_path = os.path.join(dir_name, "inverted_temp.jpg")
-                cv2.imwrite(inverted_path, inverted)
-                try:
-                    for config, config_weight in configs:
-                        result_text = extract_text_tesseract(
-                            inverted_path, config=config, language_codes=language_codes
-                        )
-                        normalized = re.sub(r"\s+", " ", result_text.strip().lower()) if result_text else ""
-                        if normalized and normalized not in seen_variants:
-                            seen_variants.add(normalized)
-                            results.append((result_text.strip(), 0.85 * config_weight))
-                finally:
-                    try:
-                        os.remove(inverted_path)
-                    except Exception:
-                        pass
-
-        if not results:
-            logger.debug("No text extracted in any OCR pass")
-            return [("", 0.0)]
-        return results
-    except Exception as e:
-        logger.exception("Error in OCR passes: %s", e)
-        return [("", 0.0)]
-
-def score_text_quality(text):
-    """Heuristic score to estimate OCR text quality"""
     if not text:
-        return 0.0
+        return []
 
-    collapsed = re.sub(r'\s+', ' ', text.strip())
-    if not collapsed:
-        return 0.0
+    medicines = []
+    seen = set()
 
-    alnum_chars = [c for c in collapsed if c.isalnum()]
-    alpha_ratio = (sum(c.isalpha() for c in alnum_chars) / len(collapsed)) if collapsed else 0.0
+    def add_medicine(name, tail=""):
+        name = re.sub(r"\s+", " ", (name or "").strip())
+        name = re.sub(r"\s*\*\s*$", "", name).strip()
+        if not name or _is_non_medicine_line(name):
+            return
+        key = name.lower()
+        if key in seen:
+            return
+        seen.add(key)
 
-    words = re.findall(r'\b\w+\b', collapsed)
-    if not words:
-        return alpha_ratio
+        strength = _extract_strength_from_name(name)
+        row_dosage, frequency, duration = _parse_prescription_row_tail(tail)
+        dosage = strength or row_dosage or "As directed"
 
-    unique_ratio = len(set(w.lower() for w in words)) / len(words)
-    length_bonus = min(len(words), 60) / 60.0
+        medicines.append({
+            "name": name,
+            "dosage": dosage,
+            "frequency": frequency or "As prescribed",
+            "duration": duration or "Until finished",
+            "instruction": "Follow doctor instructions",
+        })
 
-    return (alpha_ratio * 0.5) + (unique_ratio * 0.3) + (length_bonus * 0.2)
-
-
-def estimate_medical_signal(text):
-    if not text:
-        return 0.0
-    tokens = re.findall(r'\b[a-z]+\b', text.lower())
-    if not tokens:
-        return 0.0
-    hits = sum(1 for token in tokens if token in MEDICAL_SIGNAL_TERMS)
-    return hits / len(tokens)
-
-
-def evaluate_text_candidate(text):
-    quality = score_text_quality(text)
-    medical_signal = estimate_medical_signal(text)
-    combined = (quality * 0.7) + (medical_signal * 0.3)
-    return combined, quality, medical_signal
-
-
-def _coerce_setting(value, default):
-    try:
-        numeric = float(value)
-    except (TypeError, ValueError):
-        return default
-    if numeric < 0.0:
-        return 0.0
-    if numeric > 1.0:
-        return 1.0
-    return numeric
-
-
-def combine_ocr_results(results):
-    """Select the highest-quality OCR result and return aggregated confidence"""
-    try:
-        if not results:
-            return "", 0.0
-
-        best_text = ""
-        best_score = -1.0
-        confidence_scores = []
-
-        for text, confidence in results:
-            cleaned_text = text.strip() if text else ""
-            if not cleaned_text:
-                continue
-
-            confidence_scores.append(float(confidence))
-            quality_score = score_text_quality(cleaned_text)
-
-            if quality_score > best_score:
-                best_score = quality_score
-                best_text = cleaned_text
-
-        if not best_text:
-            return "", 0.0
-
-        avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
-
-        return best_text, avg_confidence
-
-    except Exception as e:
-        print(f"Error combining OCR results: {str(e)}")
-        return "", 0.0
-
-def extract_medical_entities(text):
-    """Extract medical entities from the text"""
-    medications = []
-    dosages = []
-    frequencies = []
-    routes = []
-    
-    # Use spaCy for entity recognition if available
-    if nlp:
-        doc = nlp(text)
-        for ent in doc.ents:
-            if ent.label_ in ["CHEMICAL", "DRUG", "MEDICATION"]:
-                # Extract only the medication name without dosage or frequency
-                med_name = re.sub(r'\s+\d+\s*\w*\b', '', ent.text) # Remove numbers and units
-                med_name = re.sub(r'\b(once|twice|three|four)(\s+times)?\s+(daily|a\s+day)\b', '', med_name, flags=re.IGNORECASE)
-                med_name = re.sub(r'\b(every|each)\s+(morning|evening|night|day|hour|hourly)\b', '', med_name, flags=re.IGNORECASE)
-                med_name = re.sub(r'\b(qd|bid|tid|qid|prn|od|q\d+h)\b', '', med_name, flags=re.IGNORECASE)
-                med_name = med_name.strip()
-                if med_name and len(med_name) > 2:  # Ensure we have a reasonable name (not just a unit or directive)
-                    medications.append(med_name)
-    
-    # Extract medications using our dictionary
-    for key in MEDICATION_DICT.keys():
-        # Skip dosage units, frequency terms, routes, and instructions
-        if key in ["milligram", "microgram", "gram", "milliliter", 
-                   "once daily", "twice daily", "three times daily", "four times daily",
-                   "every morning", "every night", "every hour", "every 4 hours",
-                   "every 6 hours", "every 8 hours", "every 12 hours", "as needed",
-                   "by mouth", "intravenous", "intramuscular", "subcutaneous",
-                   "sublingual", "topical", "inhalation",
-                   "with food", "before meals", "after meals", "with water",
-                   "do not crush", "take with plenty of water", "dissolve in water",
-                   "until finished", "shake well"]:
+    row_pattern = re.compile(
+        r"^\s*(\d+)\s*\)\s*(.+?)\s*\*\s*(.*)$",
+        re.IGNORECASE,
+    )
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
             continue
-            
-        if re.search(r'\b' + re.escape(key) + r'\b', text, re.IGNORECASE):
-            medications.append(key)
-        else:
-            # Check aliases, but only for medication items
-            for alias in MEDICATION_DICT[key]:
-                if re.search(r'\b' + re.escape(alias) + r'\b', text, re.IGNORECASE):
-                    medications.append(key)  # Add the standardized term
-                    break
-    
-    # Additional pattern-based extraction for medications
-    # Look for common medication patterns in the text
-    medication_patterns = [
-        r'\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)\s+(?:tablet|capsule|syrup|injection|tab|cap|syp|inj)\b',
-        r'\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)(?:\s+\d+(?:mg|ml|g|mcg|units?)?)\b',
-        r'\b(?:tab|tablet|cap|capsule|syp|syrup)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)\b',
-        r'\b([A-Z][a-zA-Z]+\d+)\b',  # Medicine names with numbers (e.g., "Paracetamol500")
-        r'\b([A-Z]{2,}[0-9]{2,})\b',  # Common medicine formats (e.g., "CIP500", "DOLO650")
-        r'\b([A-Z]{2,}-[A-Z0-9]+)\b',  # Medicine names with hyphens (e.g., "MED-X")
-        r'\b([A-Z][a-zA-Z]{3,}(?:\s+[A-Z][a-zA-Z]{2,})*)\s+\d+\s*(?:mg|ml|g)\b',  # Medicine name followed by dosage
-        r'\b(Tab|Cap|Syp|Inj)\.?\s+([A-Z][a-zA-Z]{3,})\b',  # Indian prescription format (e.g., "Tab. Paracip")
-        r'\b([A-Z][a-zA-Z]{4,})\s+(?:\d+(?:mg|ml|g)?)\b',  # Medicine name followed by dosage
-        r'\b([A-Z][a-zA-Z]{3,})\s+(\d+mg|\d+ml|\d+g)\b',  # Medicine names with dosage after (e.g., "Aten 50mg")
-        r'\b([A-Z][a-zA-Z]+\d{3,})\b',  # Medicine names with strength numbers (e.g., "Dolo650")
-        r'\b([A-Z][a-zA-Z]{4,})\s+(\d{1,3}(?:\.\d{1,2})?\s*(?:mg|ml|g))\b',  # Common Indian medicine formats (e.g., "Rabeprazole 20mg")
-        r'\b([A-Z]{5,}[0-9]*)\b',  # Standalone capitalized medicine names (e.g., "ATENOLOL", "CIPROFLOXACIN")
-    ]
-    
-    for pattern in medication_patterns:
-        matches = re.finditer(pattern, text, re.IGNORECASE)
-        for match in matches:
-            med_name = match.group(1) if len(match.groups()) >= 1 else match.group(0)
-            # If it's a tuple with two groups (like "Tab Paracip"), take the medicine name part
-            if len(match.groups()) >= 2:
-                med_name = match.group(2)  # Take the second group which is the medicine name
-            # Basic cleaning
-            med_name = re.sub(r'\s+', ' ', med_name.strip())
-            if len(med_name) > 2 and med_name.lower() not in ['the', 'and', 'for', 'with', 'take', 'have', 'not', 'this', 'that', 'will', 'should', 'would', 'could', 'may', 'might', 'must', 'can', 'does', 'did', 'do', 'is', 'are', 'was', 'were', 'been', 'being', 'be', 'has', 'had', 'having', 'get', 'got', 'getting', 'make', 'made', 'making', 'go', 'went', 'going', 'come', 'came', 'coming', 'see', 'saw', 'seeing', 'know', 'knew', 'knowing', 'think', 'thought', 'thinking', 'say', 'said', 'saying', 'tell', 'told', 'telling', 'ask', 'asked', 'asking', 'give', 'gave', 'giving', 'put', 'turn', 'turned', 'turning', 'keep', 'kept', 'keeping', 'let', 'lets', 'letting', 'begin', 'began', 'beginning', 'start', 'started', 'starting', 'continue', 'continued', 'continuing', 'try', 'tried', 'trying', 'need', 'needed', 'needing', 'want', 'wanted', 'wanting', 'like', 'liked', 'liking', 'seem', 'seemed', 'seeming', 'become', 'became', 'becoming', 'leave', 'left', 'leaving', 'feel', 'felt', 'feeling', 'appear', 'appeared', 'appearing', 'look', 'looked', 'looking', 'hear', 'heard', 'hearing', 'play', 'played', 'playing', 'run', 'ran', 'running', 'move', 'moved', 'moving', 'live', 'lived', 'living', 'believe', 'believed', 'believing', 'hold', 'held', 'holding', 'bring', 'brought', 'bringing', 'happen', 'happened', 'happening', 'write', 'wrote', 'writing', 'sit', 'sat', 'sitting', 'stand', 'stood', 'standing', 'lose', 'lost', 'losing', 'pay', 'paid', 'paying', 'meet', 'met', 'meeting', 'include', 'included', 'including', 'set', 'setting', 'learn', 'learned', 'learning', 'change', 'changed', 'changing', 'lead', 'led', 'leading', 'understand', 'understood', 'understanding', 'watch', 'watched', 'watching', 'follow', 'followed', 'following', 'stop', 'stopped', 'stopping', 'create', 'created', 'creating', 'speak', 'spoke', 'speaking', 'read', 'spend', 'spent', 'spending', 'grow', 'grew', 'growing', 'open', 'opened', 'opening', 'walk', 'walked', 'walking', 'win', 'won', 'winning', 'teach', 'taught', 'teaching', 'offer', 'offered', 'offering', 'remember', 'remembered', 'remembering', 'consider', 'considered', 'considering', 'buy', 'bought', 'buying', 'serve', 'served', 'serving', 'die', 'died', 'dying', 'send', 'sent', 'sending', 'build', 'built', 'building', 'stay', 'stayed', 'staying', 'fall', 'fell', 'falling', 'cut', 'rise', 'rose', 'rising', 'drive', 'drove', 'driving', 'break', 'broke', 'breaking', 'choose', 'chose', 'choosing', 'forget', 'forgot', 'forgetting', 'drink', 'drank', 'drinking', 'eat', 'ate', 'eating', 'find', 'found', 'finding', 'fly', 'flew', 'flying', 'hide', 'hid', 'hiding', 'hit', 'lay', 'laid', 'laying', 'lie', 'ring', 'rang', 'ringing', 'shake', 'shook', 'shaking', 'sing', 'sang', 'singing', 'sink', 'sank', 'sinking', 'stick', 'stuck', 'sticking', 'strike', 'struck', 'striking', 'tear', 'tore', 'tearing', 'throw', 'threw', 'throwing', 'wake', 'woke', 'waking', 'wear', 'wore', 'wearing', 'diagnosis', 'symptom', 'symptoms', 'treatment', 'therapy', 'procedure', 'operation', 'surgery', 'test', 'exam', 'checkup', 'consultation', 'appointment', 'followup', 'review', 'monitoring', 'monitor', 'check', 'screening', 'screen', 'evaluation', 'assessment', 'prescribe', 'prescribing', 'prescriber', 'pharmacist', 'pharmacy', 'pharmaceutical', 'pharmaceuticals', 'pharma', 'medicinal', 'medicinals', 'therapeutic', 'therapeutics', 'clinical', 'clinically', 'medical', 'medically', 'health', 'healthcare', 'care', 'hospital', 'clinic', 'doctor', 'physician', 'specialist', 'nurse', 'nursing', 'patient', 'patients', 'client', 'clients', 'person', 'people', 'human', 'humans', 'individual', 'individuals', 'subject', 'subjects']:
-                medications.append(med_name.title())
-    
-    # Pattern for dosage (number + unit)
-    dosage_pattern = r'\b(\d+[\.\d]*)\s*(mg|mcg|mL|g|mg/mL|mEq|units|tablets?|caps?|syps?|injs?)\b'
-    dosage_matches = re.finditer(dosage_pattern, text, re.IGNORECASE)
-    for match in dosage_matches:
-        dosages.append(match.group(0))
-    
-    # Pattern for frequencies
-    freq_patterns = [
-        r'\b(once|twice|three times|four times)\s+daily\b',
-        r'\b(q\.?d|b\.?i\.?d|t\.?i\.?d|q\.?i\.?d)\b',
-        r'\b(every|each)\s+(\d+)\s+(hours?|days?)\b',
-        r'\b(q)(\d+)(h)\b',
-        r'\b(\d+-\d+-\d+)\b',  # Indian prescription format like 1-0-1
-        r'\bprn\b',
-        r'\bas needed\b',
-        r'\b(od|bd|tds|qid)\b',  # Common medical abbreviations for frequency
-    ]
-    
-    for pattern in freq_patterns:
-        matches = re.finditer(pattern, text, re.IGNORECASE)
-        for match in matches:
-            frequencies.append(match.group(0))
-    
-    # Pattern for routes of administration
-    route_patterns = [
-        r'\b(oral(ly)?|by mouth|p\.?o\.)\b',
-        r'\b(intravenous|i\.?v\.)\b',
-        r'\b(intramuscular|i\.?m\.)\b',
-        r'\b(subcutaneous|s\.?c\.|sub-q)\b',
-        r'\b(topical(ly)?)\b',
-        r'\b(sublingual|s\.?l\.)\b',
-        r'\b(tablet|capsule|syrup|injection)\b',
-        r'\b(tab|cap|syp|inj)\b',  # Common abbreviations
-    ]
-    
-    for pattern in route_patterns:
-        matches = re.finditer(pattern, text, re.IGNORECASE)
-        for match in matches:
-            routes.append(match.group(0))
-    
-    # Clean medication names to remove any residual dosage or frequency info
-    clean_medications = []
-    for med in medications:
-        # Remove dosage and frequency information
-        clean_med = re.sub(r'\s+\d+\s*\w*\b', '', med).strip()
-        clean_med = re.sub(r'\b(once|twice|three|four)(\s+times)?\s+(daily|a\s+day)\b', '', clean_med, flags=re.IGNORECASE).strip()
-        clean_med = re.sub(r'\b(every|each)\s+(morning|evening|night|day|hour|hourly)\b', '', clean_med, flags=re.IGNORECASE).strip()
-        clean_med = re.sub(r'\b(qd|bid|tid|qid|prn|od|bd|tds|qid|q\d+h)\b', '', clean_med, flags=re.IGNORECASE).strip()
-        
-        if clean_med and len(clean_med) > 2:  # Ensure we have a meaningful name
-            clean_medications.append(clean_med)
-    
-    # If no medications found but text suggests medications, add a general entry
-    if not clean_medications and re.search(r'\b(?:medication|prescription|rx|tablet|capsule|syrup|take|dose|mg|ml|g)\b', text, re.IGNORECASE):
-        clean_medications = ['Medication Not Clearly Identified']
-        if not dosages:
-            dosages = ['See prescription text']
-        if not frequencies:
-            frequencies = ['As prescribed']
-    
+        match = row_pattern.match(line)
+        if match:
+            add_medicine(match.group(2), match.group(3))
+            continue
+        # OCR sometimes misses the asterisk
+        fallback = re.match(r"^\s*(\d+)\s*\)\s*(.+)$", line, re.IGNORECASE)
+        if fallback:
+            body = fallback.group(2).strip()
+            if "*" in body:
+                name_part, _, tail = body.partition("*")
+                add_medicine(name_part, tail)
+            elif re.search(r"\b(?:TAB|CAP|CAPSULE|SYRUP|MG|ML)\b", body, re.IGNORECASE):
+                # Split before dosage schedule (digits with - or =)
+                split = re.split(
+                    r"\s+(?=\d+[\s\-=]+(?:\d+[\s\-=]+)+\d+|\d+\s*[\-–]\s*\d+)",
+                    body,
+                    maxsplit=1,
+                )
+                add_medicine(split[0], split[1] if len(split) > 1 else "")
+
+    if medicines:
+        print(f"Table prescription medicines ({len(medicines)}): {[m['name'] for m in medicines]}")
+    return medicines
+
+
+def entities_from_table_medicines(table_meds):
+    """Convert table medicine rows to entity dict used by the OCR pipeline."""
     return {
-        "medications": list(set(clean_medications)),
-        "dosages": list(set(dosages)),
-        "frequencies": list(set(frequencies)),
-        "routes": list(set(routes))
+        "medications": [m["name"] for m in table_meds],
+        "dosages": [m["dosage"] for m in table_meds],
+        "frequencies": [m["frequency"] for m in table_meds],
+        "routes": [m["instruction"] for m in table_meds],
+        "durations": [m["duration"] for m in table_meds],
+        "structured_prescriptions": table_meds,
     }
 
-def extract_medicines_strict(ocr_text):
-    """
-    STRICT medicine extraction following safety rules:
-    - Only extract medicines explicitly or approximately present in OCR text
-    - Do NOT guess or insert common drugs
-    - Include evidence field with OCR word that triggered detection
-    - Use "Not mentioned" for missing fields
-    - Use "Unclear (OCR: <word>)" for unclear medicine names
-    - Do NOT fabricate dosage, frequency, or duration
-    - Return empty array if no valid medicine tokens exist
-    
-    Returns: JSON structure with medicines array
-    """
-    if not ocr_text or not isinstance(ocr_text, str):
-        return {"medicines": []}
-    
-    text_lower = ocr_text.lower()
-    medicines = []
-    
-    # Medicine indicators that suggest a medicine might be present
-    medicine_indicators = [
-        r'\b(tab|tabs|tablet|tablets)\b',
-        r'\b(cap|caps|capsule|capsules)\b',
-        r'\b(syp|syrup|syrups|sup)\b',  # Include "sup" as OCR error for "syp"
-        r'\b(inj|injection|injections)\b',
-        r'\b(rx|prescription)\b',
-        r'\b(mg|ml|g|mcg|units?)\b',  # Dosage units that often indicate medicines
-        r'\b(take|dose|dosed)\b',  # Action words that suggest medicines
-        r'\b(\d+-\d+-\d+)\b',  # Indian prescription format like 1-0-1
-    ]
-    
-    # Check if any medicine indicators exist
-    has_indicators = any(re.search(pattern, text_lower) for pattern in medicine_indicators)
-    
-    # Extract potential medicine names from text
-    # Look for words that appear after medicine indicators or standalone drug-like words
-    words = re.findall(r'\b[a-z]{3,}\b', text_lower)
-    
-    # If no indicators and no substantial words, but text suggests medications, add a general entry
-    if not has_indicators and len(words) < 3:
-        # Check if text suggests medications are present
-        if re.search(r'\b(?:medication|prescription|rx|tablet|capsule|syrup|take|dose|mg|ml|g)\b', text_lower):
-            return {
-                "medicines": [{
-                    "name": "Medication Not Clearly Identified",
-                    "strength": "See prescription text",
-                    "frequency": "As prescribed",
-                    "duration": "Not mentioned",
-                    "route": "Not mentioned",
-                    "evidence": "Text suggests presence of medications"
-                }]
-            }
-        return {"medicines": []}
-    
-    # Pattern to find medicine entries: indicator followed by potential medicine name
-    # Format: Tab/Cap/Syp/Inj [medicine_name] [dosage] [frequency]
-    medicine_patterns = [
-        # Tab/Cap/Syp/Inj followed by medicine name (most reliable) - improved to capture multi-word names
-        r'\b(tab|tabs|tablet|tablets|cap|caps|capsule|capsules|syp|syrup|syrups|sup|inj|injection|injections)\s+([a-z]{3,}(?:\s+[a-z]{1,4})?(?:\s+[a-z]{2,})?)\s*',
-        # Medicine name followed by dosage (indicates medicine) - improved to handle numbers without units
-        r'\b([a-z]{4,}(?:\s+[a-z]{1,4})?)\s+(\d{3,}|\d+[\.\d]*\s*(?:mg|mcg|ml|g|mg/ml|meq|units?))\b',
-        # Medicine name with CV, DX, etc. patterns
-        r'\b([a-z]{4,})\s+(cv|dx|sr|er|xr|plus|forte)\s*(\d+)?\b',
-        # Generic pattern for capitalized medicine names
-        r'\b([A-Z][a-z]{3,}(?:\s+[A-Z][a-z]{2,})*)\b',
-        # Pattern for medicine names with numbers (e.g., "Medicine123")
-        r'\b([A-Z][a-z]+\d+)\b',
-        # Pattern for common medicine formats with numbers (e.g., "CIP500", "DOLO650")
-        r'\b([A-Z]{2,}[0-9]{2,})\b',
-        # Pattern for medicine names with hyphens (e.g., "MED-X")
-        r'\b([A-Z]{2,}-[A-Z0-9]+)\b',
-        # Pattern for Indian prescription format (e.g., "Tab Paracip")
-        r'\b(tab|cap|syp|inj)\s+([A-Z][a-z]+)\b',
-        # Pattern for common medicine abbreviations (e.g., "Tab Crocin")
-        r'\b(tab|cap|syp|inj)\s+([A-Z][a-z]{3,})\b',
-        # Pattern for medicine names with dosage after (e.g., "Aten 50mg")
-        r'\b([A-Z][a-z]{3,})\s+(\d+mg|\d+ml|\d+g)\b',
-        # Pattern for medicine names with strength numbers (e.g., "Dolo650")
-        r'\b([A-Z][a-z]+\d{3,})\b',
-        # Pattern for common Indian medicine formats (e.g., "Rabeprazole 20mg")
-        r'\b([A-Z][a-z]{4,})\s+(\d{1,3}(?:\.\d{1,2})?\s*(?:mg|ml|g))\b',
-    ]
-    
-    found_medicines = {}
-    
-    # Extract medicine candidates with context
-    for pattern in medicine_patterns:
-        matches = re.finditer(pattern, text_lower)
-        for match in matches:
-            if len(match.groups()) >= 1:
-                # Get the medicine name candidate - handle multi-word names better
-                if len(match.groups()) >= 2:
-                    # Pattern like: tab moxikind cv or moxikind cv 625
-                    med_candidate = match.group(1)  # First group is usually the name
-                    if len(match.groups()) >= 3:
-                        # Handle cases like "moxikind cv 625" - combine name parts
-                        med_candidate = f"{match.group(1)} {match.group(2)}".strip()
-                else:
-                    med_candidate = match.group(1)
-                
-                # Clean up the candidate - remove trailing numbers that are dosages
-                med_candidate = re.sub(r'\s+\d{3,}$', '', med_candidate).strip()
-                
-                # Skip common non-medicine words
-                skip_words = {
-                    'tablet', 'tablets', 'capsule', 'capsules', 'syrup', 'syrups',
-                    'injection', 'injections', 'prescription', 'doctor', 'patient',
-                    'morning', 'evening', 'night', 'daily', 'before', 'after',
-                    'meals', 'food', 'water', 'times', 'days', 'weeks', 'months',
-                    'take', 'apply', 'use', 'with', 'without', 'every', 'each',
-                    'the', 'and', 'for', 'this', 'that', 'have', 'not', 'will', 'can',
-                    'should', 'would', 'could', 'may', 'might', 'must', 'does', 'did',
-                    'do', 'is', 'are', 'was', 'were', 'been', 'being', 'be', 'has', 'had',
-                    'having', 'get', 'got', 'getting', 'make', 'made', 'making', 'go', 'went',
-                    'going', 'come', 'came', 'coming', 'see', 'saw', 'seeing', 'know', 'knew',
-                    'knowing', 'think', 'thought', 'thinking', 'say', 'said', 'saying', 'tell',
-                    'told', 'telling', 'ask', 'asked', 'asking', 'give', 'gave', 'giving',
-                    'put', 'turn', 'turned', 'turning', 'keep', 'kept', 'keeping', 'let', 'lets',
-                    'letting', 'begin', 'began', 'beginning', 'start', 'started', 'starting',
-                    'continue', 'continued', 'continuing', 'try', 'tried', 'trying', 'need',
-                    'needed', 'needing', 'want', 'wanted', 'wanting', 'like', 'liked', 'liking',
-                    'seem', 'seemed', 'seeming', 'become', 'became', 'becoming', 'leave', 'left',
-                    'leaving', 'feel', 'felt', 'feeling', 'appear', 'appeared', 'appearing',
-                    'look', 'looked', 'looking', 'hear', 'heard', 'hearing', 'play', 'played',
-                    'playing', 'run', 'ran', 'running', 'move', 'moved', 'moving', 'live', 'lived',
-                    'living', 'believe', 'believed', 'believing', 'hold', 'held', 'holding',
-                    'bring', 'brought', 'bringing', 'happen', 'happened', 'happening', 'write',
-                    'wrote', 'writing', 'sit', 'sat', 'sitting', 'stand', 'stood', 'standing',
-                    'lose', 'lost', 'losing', 'pay', 'paid', 'paying', 'meet', 'met', 'meeting',
-                    'include', 'included', 'including', 'set', 'setting', 'learn', 'learned',
-                    'learning', 'change', 'changed', 'changing', 'lead', 'led', 'leading',
-                    'understand', 'understood', 'understanding', 'watch', 'watched', 'watching',
-                    'follow', 'followed', 'following', 'stop', 'stopped', 'stopping', 'create',
-                    'created', 'creating', 'speak', 'spoke', 'speaking', 'read', 'spend', 'spent',
-                    'spending', 'grow', 'grew', 'growing', 'open', 'opened', 'opening', 'walk',
-                    'walked', 'walking', 'win', 'won', 'winning', 'teach', 'taught', 'teaching',
-                    'offer', 'offered', 'offering', 'remember', 'remembered', 'remembering',
-                    'consider', 'considered', 'considering', 'buy', 'bought', 'buying', 'serve',
-                    'served', 'serving', 'die', 'died', 'dying', 'send', 'sent', 'sending', 'build',
-                    'built', 'building', 'stay', 'stayed', 'staying', 'fall', 'fell', 'falling',
-                    'cut', 'rise', 'rose', 'rising', 'drive', 'drove', 'driving', 'break', 'broke',
-                    'breaking', 'choose', 'chose', 'choosing', 'forget', 'forgot', 'forgetting',
-                    'drink', 'drank', 'drinking', 'eat', 'ate', 'eating', 'find', 'found', 'finding',
-                    'fly', 'flew', 'flying', 'hide', 'hid', 'hiding', 'hit', 'lay', 'laid', 'laying',
-                    'lie', 'ring', 'rang', 'ringing', 'shake', 'shook', 'shaking', 'sing', 'sang',
-                    'singing', 'sink', 'sank', 'sinking', 'stick', 'stuck', 'sticking', 'strike',
-                    'struck', 'striking', 'tear', 'tore', 'tearing', 'throw', 'threw', 'throwing',
-                    'wake', 'woke', 'waking', 'wear', 'wore', 'wearing',
-                    # Additional common words to skip
-                    'prescribed', 'medicine', 'medication', 'drug', 'treatment', 'therapy',
-                    'dose', 'dosed', 'dosage', 'strength', 'frequency', 'duration',
-                    'route', 'administration', 'instruction', 'direction', 'directions',
-                    'as', 'per', 'when', 'how', 'why', 'what', 'where', 'who', 'which',
-                    'but', 'or', 'if', 'then', 'else', 'than', 'so', 'too', 'very',
-                    'just', 'only', 'also', 'even', 'still', 'yet', 'already', 'since',
-                    'until', 'while', 'during', 'before', 'after', 'through', 'between',
-                    'among', 'above', 'below', 'under', 'over', 'again', 'further',
-                    'once', 'twice', 'thrice', 'first', 'second', 'third', 'last',
-                    'next', 'previous', 'former', 'latter', 'same', 'different',
-                    'other', 'another', 'such', 'same', 'similar', 'different',
-                    'many', 'much', 'more', 'most', 'few', 'less', 'least',
-                    'some', 'any', 'no', 'none', 'all', 'every', 'each',
-                    'both', 'either', 'neither', 'one', 'two', 'three', 'four',
-                    'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven',
-                    'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
-                    'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty',
-                    'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety',
-                    'hundred', 'thousand', 'million', 'billion', 'trillion',
-                    # Common medical terms that are not medicines
-                    'diagnosis', 'symptom', 'symptoms', 'treatment', 'therapy',
-                    'procedure', 'operation', 'surgery', 'test', 'exam', 'checkup',
-                    'consultation', 'appointment', 'followup', 'review', 'monitoring',
-                    'monitor', 'check', 'screening', 'screen', 'evaluation', 'assessment',
-                    'prescribe', 'prescribing', 'prescriber', 'pharmacist', 'pharmacy',
-                    'pharmaceutical', 'pharmaceuticals', 'pharma', 'medicinal', 'medicinals',
-                    'therapeutic', 'therapeutics', 'clinical', 'clinically', 'medical',
-                    'medically', 'health', 'healthcare', 'care', 'hospital', 'clinic',
-                    'doctor', 'physician', 'specialist', 'nurse', 'nursing', 'nurse',
-                    'patient', 'patients', 'client', 'clients', 'person', 'people',
-                    'human', 'humans', 'individual', 'individuals', 'subject', 'subjects'
-                }
-                
-                if med_candidate.lower() in skip_words or len(med_candidate) < 3:
-                    continue
-                
-                # Handle OCR errors: "c2" might be "cv", "sup" might be "syp"
-                med_candidate_clean = med_candidate
-                med_candidate_clean = re.sub(r'\bc2\b', 'cv', med_candidate_clean)
-                med_candidate_clean = re.sub(r'\bsup\b', 'syp', med_candidate_clean)
-                
-                # Check if this looks like a medicine name (not a common word)
-                # Use fuzzy matching to check against medication dictionary ONLY if word is similar
-                evidence_word = med_candidate  # Keep original for evidence
-                medicine_name = None
-                confidence = "clear"
-                
-                # Use cleaned version for matching
-                search_candidate = med_candidate_clean.lower()
-                
-                # Check against medication dictionary with fuzzy matching (75% threshold)
-                best_match = None
-                best_score = 0
-                
-                for key, aliases in MEDICATION_DICT.items():
-                    # Skip non-medication entries
-                    if key in ["milligram", "microgram", "gram", "milliliter",
-                              "once daily", "twice daily", "three times daily", "four times daily",
-                              "every morning", "every night", "every hour", "every 4 hours",
-                              "every 6 hours", "every 8 hours", "every 12 hours", "as needed",
-                              "by mouth", "intravenous", "intramuscular", "subcutaneous",
-                              "sublingual", "topical", "inhalation",
-                              "with food", "before meals", "after meals", "with water",
-                              "do not crush", "take with plenty of water", "dissolve in water",
-                              "until finished", "shake well"]:
-                        continue
-                    
-                    # Check exact match or high similarity with cleaned candidate
-                    if search_candidate == key.lower() or search_candidate.startswith(key.lower()) or key.lower().startswith(search_candidate):
-                        best_match = key
-                        best_score = 100
-                        break
-                    
-                    # Check if cleaned candidate contains key or vice versa (for multi-word names)
-                    if search_candidate in key.lower() or key.lower() in search_candidate:
-                        if len(search_candidate) >= 4:  # Only if substantial match
-                            best_match = key
-                            best_score = 95
-                            break
-                    
-                    # Check aliases
-                    for alias in aliases:
-                        alias_lower = alias.lower()
-                        if search_candidate == alias_lower or search_candidate.startswith(alias_lower) or alias_lower.startswith(search_candidate):
-                            best_match = key
-                            best_score = 100
-                            break
-                        score = fuzz.ratio(search_candidate, alias_lower)
-                        if score > best_score and score >= 70:  # Lowered threshold to 70 for better matching
-                            best_score = score
-                            best_match = key
-                
-                if best_match and best_score >= 70:
-                    medicine_name = best_match
-                    if best_score < 85:
-                        confidence = "unclear"
-                else:
-                    # If no match found but word looks medicine-like, use the cleaned candidate
-                    if len(med_candidate_clean) >= 4:
-                        # Capitalize first letter of each word for better display
-                        medicine_name = ' '.join(word.capitalize() for word in med_candidate_clean.split())
-                        confidence = "unclear"
-                    else:
-                        continue  # Skip if doesn't look like medicine
-                
-                # Extract dosage near this medicine
-                strength = "Not mentioned"
-                # Look for dosage pattern near the medicine (within 100 chars for better context)
-                match_start = match.start()
-                context = text_lower[max(0, match_start-50):match_start+150]
-                
-                # Improved dosage patterns - handle numbers with/without units, and patterns like 5-5-5ml
-                dosage_patterns = [
-                    r'(\d+[\.\d]*)\s*(mg|mcg|ml|g|mg/ml|meq|units?)\b',  # Standard: 500mg, 5ml
-                    r'(\d+-\d+-\d+)\s*(mg|mcg|ml|g)\b',  # Pattern: 5-5-5ml (three times)
-                    r'\b(\d{3,})\b',  # Large numbers like 625, 500 (likely dosages)
-                ]
-                
-                for dosage_pattern in dosage_patterns:
-                    dosage_match = re.search(dosage_pattern, context)
-                    if dosage_match:
-                        if len(dosage_match.groups()) > 1 and dosage_match.group(2):
-                            strength = f"{dosage_match.group(1)} {dosage_match.group(2)}"
-                        elif dosage_match.group(1) and len(dosage_match.group(1)) >= 3:
-                            # Large number without unit - likely a dosage
-                            num = dosage_match.group(1)
-                            if '-' in num:
-                                # Pattern like 5-5-5ml - extract the number and unit if present
-                                strength = num
-                            else:
-                                strength = num  # Will be marked as dosage number
-                        break
-                
-                # Extract frequency near this medicine
-                frequency = "Not mentioned"
-                freq_patterns = [
-                    r'\b(1-0-1|1-1-1|0-0-1|0-1-0)\b',  # Common Indian prescription format
-                    r'\b(\d+-\d+-\d+)\b',  # Pattern like 5-5-5 (three times daily)
-                    r'\b(od|qd|once\s+daily|once\s+a\s+day)\b',
-                    r'\b(bd|bid|twice\s+daily|twice\s+a\s+day|2\s+times)\b',
-                    r'\b(tds|tid|three\s+times\s+daily|3\s+times)\b',
-                    r'\b(qid|qds|four\s+times\s+daily|4\s+times)\b',
-                    r'\b(every\s+\d+\s+hours?|q\d+h)\b',
-                    r'\b(prn|as\s+needed|sos)\b',
-                    r'\b(^|\s)1(\s|$)\b',  # Standalone "1" often means once daily
-                ]
-                
-                for freq_pattern in freq_patterns:
-                    freq_match = re.search(freq_pattern, context, re.IGNORECASE)
-                    if freq_match:
-                        freq_text = freq_match.group(0).strip()
-                        # Convert patterns to readable format
-                        if freq_text == "1" or freq_text == "1 ":
-                            frequency = "Once daily (OD)"
-                        elif re.match(r'\d+-\d+-\d+', freq_text):
-                            frequency = "Three times daily (TDS)"
-                        else:
-                            frequency = freq_text
-                        break
-                
-                # Extract duration
-                duration = "Not mentioned"
-                duration_match = re.search(r'(\d+)\s*(days?|weeks?|months?)\b', context)
-                if duration_match:
-                    duration = f"{duration_match.group(1)} {duration_match.group(2)}"
-                
-                # Extract route - also check the original match for route indicator
-                route = "Not mentioned"
-                # First check if route was in the original pattern match
-                if len(match.groups()) > 0:
-                    first_group = match.group(0).lower()
-                    if any(word in first_group for word in ['tab', 'tablet']):
-                        route = "Tablet"
-                    elif any(word in first_group for word in ['cap', 'capsule']):
-                        route = "Capsule"
-                    elif any(word in first_group for word in ['syp', 'syrup', 'sup']):  # Handle OCR error "sup"
-                        route = "Syrup"
-                    elif any(word in first_group for word in ['inj', 'injection']):
-                        route = "Injection"
-                
-                # If route not found in match, search context
-                if route == "Not mentioned":
-                    route_patterns = [
-                        r'\b(tablet|tablets|tab|tabs)\b',
-                        r'\b(capsule|capsules|cap|caps)\b',
-                        r'\b(syrup|syrups|syp|sup)\b',  # Handle OCR error "sup" for "syp"
-                        r'\b(injection|injections|inj)\b',
-                    ]
-                    
-                    for route_pattern in route_patterns:
-                        route_match = re.search(route_pattern, context)
-                        if route_match:
-                            route_word = route_match.group(0).lower()
-                            if route_word in ['tablet', 'tablets', 'tab', 'tabs']:
-                                route = "Tablet"
-                            elif route_word in ['capsule', 'capsules', 'cap', 'caps']:
-                                route = "Capsule"
-                            elif route_word in ['syrup', 'syrups', 'syp', 'sup']:  # Handle OCR error
-                                route = "Syrup"
-                            elif route_word in ['injection', 'injections', 'inj']:
-                                route = "Injection"
-                            break
-                
-                # Use evidence word (original OCR text)
-                evidence = evidence_word
-                
-                # Create medicine entry
-                med_key = medicine_name.lower() if isinstance(medicine_name, str) and not medicine_name.startswith("Unclear") else evidence_word
-                if med_key not in found_medicines:
-                    found_medicines[med_key] = {
-                        "name": medicine_name,
-                        "strength": strength,
-                        "frequency": frequency,
-                        "duration": duration,
-                        "route": route,
-                        "evidence": evidence
-                    }
-    
-    # Convert to list
-    medicines_list = list(found_medicines.values())
-    
-    # Additional pass to detect standalone capitalized medicine names that might have been missed
-    # This helps catch medicines like "ATENOLOL", "CIPROFLOXACIN", etc.
-    capitalized_medicine_pattern = r'\b([A-Z]{4,}[0-9]*)\b'
-    capitalized_matches = re.finditer(capitalized_medicine_pattern, ocr_text)
-    for match in capitalized_matches:
-        med_name = match.group(1)
-        if med_name.lower() not in skip_words and len(med_name) >= 4:
-            # Check if this medicine is already in our list
-            already_found = False
-            for existing_med in medicines_list:
-                if existing_med["name"].lower() == med_name.lower():
-                    already_found = True
-                    break
-            
-            if not already_found:
-                medicines_list.append({
-                    "name": med_name,
-                    "strength": "Not mentioned",
-                    "frequency": "Not mentioned",
-                    "duration": "Not mentioned",
-                    "route": "Not mentioned",
-                    "evidence": med_name
-                })
-    
-    # If no medicines found but text suggests medications, add a general entry
-    if not medicines_list and re.search(r'\b(?:medication|prescription|rx|tablet|capsule|syrup|take|dose|mg|ml|g)\b', text_lower):
-        medicines_list = [{
-            "name": "Medication Not Clearly Identified",
-            "strength": "See prescription text",
-            "frequency": "As prescribed",
-            "duration": "Not mentioned",
-            "route": "Not mentioned",
-            "evidence": "Text suggests presence of medications"
-        }]
-    
-    return {"medicines": medicines_list}
+# ---------------- NEW: Imports for additional OCR engines and preprocessing -------
+try:
+    import easyocr
+except ImportError:
+    easyocr = None
+try:
+    from paddleocr import PaddleOCR
+except ImportError:
+    PaddleOCR = None
 
-def validate_medicines(result):
-    """
-    Hard validation filter to block fake/hallucinated medicines.
-    Rejects medicines without evidence or with empty names.
-    """
-    if "medicines" not in result:
-        return {"medicines": []}
-    
-    validated = []
-    
-    for med in result["medicines"]:
-        # Reject medicines without evidence (hallucinated)
-        if not med.get("evidence"):
-            continue
-        
-        # Reject medicines with empty names
-        if not med.get("name") or med["name"].strip() == "":
-            continue
-        
-        validated.append(med)
-    
-    return {"medicines": validated}
+import math
 
-def process_prescription_with_enhanced_ocr(image_path, output_dir=None, languages=None):
-    """Process a prescription image with enhanced OCR techniques"""
-    # Use absolute path so OCR engines can load the file reliably
-    image_path = os.path.abspath(image_path) if isinstance(image_path, str) else image_path
-    if isinstance(image_path, str) and not os.path.isfile(image_path):
-        logger.error("Prescription image not found: %s", image_path)
-        return {"error": "Image file not found", "raw_text": "", "cleaned_text": "", "medications": [], "medicines_strict": {"medicines": []}}
+# ---------------- Modular Preprocessing Functions ------------
+def advanced_preprocess_image(image_path, apply_clahe=True, resize_factor=1.5, deskew=True):
+    img = cv2.imread(image_path)
+    if img is None:
+        return None
+    # Grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # CLAHE for contrast
+    if apply_clahe:
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        gray = clahe.apply(gray)
+    # Denoise
+    denoised = cv2.fastNlMeansDenoising(gray, h=30)
+    # Resize (upscale for small text)
+    if resize_factor and resize_factor != 1.0:
+        denoised = cv2.resize(denoised, (0, 0), fx=resize_factor, fy=resize_factor, interpolation=cv2.INTER_CUBIC)
+    # Deskew
+    if deskew:
+        coords = np.column_stack(np.where(denoised > 0))
+        angle = 0.0
+        if coords.size > 0:
+            rect = cv2.minAreaRect(coords)
+            angle = rect[-1]
+            if angle < -45:
+                angle = -(90 + angle)
+            else:
+                angle = -angle
+            (h, w) = denoised.shape
+            M = cv2.getRotationMatrix2D((w // 2, h // 2), angle, 1.0)
+            denoised = cv2.warpAffine(denoised, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    # Adaptive thresholding
+    thresh = cv2.adaptiveThreshold(denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 8)
+    # Morphological opening/closing (try to make letters whole)
+    kernel = np.ones((2,2), np.uint8)
+    processed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=1)
+    # Save enhanced
+    base_name = os.path.basename(image_path)
+    out_path = os.path.join(os.path.dirname(image_path), f'advanced_{base_name}')
+    cv2.imwrite(out_path, processed)
+    return {
+        "original": image_path,
+        "enhanced": out_path,
+        "processed_image": processed
+    }
 
-    # First check if this image has been trained before
+# ------------- MULTI-BACKEND OCR LOGIC ---------------------
+def extract_text_easyocr(image_path):
+    if easyocr is None:
+        print("EasyOCR not installed.")
+        return ""
+    reader = easyocr.Reader(['en'])
     try:
-        from .image_trainer import ImageTrainer
-        trainer = ImageTrainer()
-        trained_result = trainer.find_match(image_path)
-        if trained_result:
-            # Return the trained result directly
-            return trained_result
+        results = reader.readtext(image_path)
+        text = "\n".join([res[1] for res in results])
     except Exception as e:
-        logger.debug("Error checking for trained image: %s", e)
+        print(f"EasyOCR error: {e}")
+        text = ""
+    return text
 
+def extract_text_paddleocr(image_path):
+    if PaddleOCR is None:
+        print("PaddleOCR not installed.")
+        return ""
+    ocr = PaddleOCR(lang='en', use_angle_cls=True, show_log=False)
     try:
-        # Prepare output paths
-        if output_dir:
-            os.makedirs(output_dir, exist_ok=True)
-            base_name = os.path.basename(image_path)
-            base_name_no_ext = os.path.splitext(base_name)[0]
-            enhanced_path = os.path.join(output_dir, f"enhanced_{base_name}")
-            results_path = os.path.join(output_dir, f"{base_name_no_ext}_results.json")
-        else:
-            enhanced_path = None
-            results_path = None
-        
-        # STEP 1: Apply image preprocessing (grayscale, denoise, threshold, resize, morphology)
-        image_data = preprocess_image(image_path)
+        results = ocr.ocr(image_path)
+        lines = []
+        for line in results:
+            for part in line:
+                if len(part) > 1:
+                    lines.append(part[1][0])
+        return "\n".join(lines)
+    except Exception as e:
+        print(f"PaddleOCR error: {e}")
+        return ""
+
+def _select_preprocess_image(image_path, preprocess_mode="auto"):
+    """Pick preprocessing pipeline. Basic enhancement works best for prescriptions."""
+    if preprocess_mode == "basic":
+        return preprocess_image(image_path)
+    if preprocess_mode == "advanced":
+        return advanced_preprocess_image(image_path)
+
+    # auto: prefer basic; use advanced only if basic yields very little text
+    basic = preprocess_image(image_path)
+    if not basic:
+        return advanced_preprocess_image(image_path)
+
+    probe = run_multiple_ocr_passes(basic, max_configs=1)
+    probe_text, _ = combine_ocr_results(probe)
+    if len((probe_text or "").strip()) >= 20:
+        return basic
+
+    advanced = advanced_preprocess_image(image_path)
+    if not advanced:
+        return basic
+
+    adv_probe = run_multiple_ocr_passes(advanced, max_configs=1)
+    adv_text, _ = combine_ocr_results(adv_probe)
+    if len((adv_text or "").strip()) > len((probe_text or "").strip()):
+        return advanced
+    return basic
+
+
+# -------- MAIN ENTRY for MODULAR OCR (Tesseract/EasyOCR/PaddleOCR): --------------
+def process_prescription_modular(
+    image_path,
+    output_dir=None,
+    ocr_backend="tesseract",
+    preprocess_mode="auto",
+    languages=None,
+):
+    """
+    ocr_backend: "tesseract" (default), "easyocr", "paddle"
+    preprocess_mode: "auto" (choose best), "basic", "advanced"
+    languages: list of Tesseract language codes (e.g. ["eng", "hin"])
+    """
+    language_codes = normalize_tesseract_languages(languages)
+    image_data = _select_preprocess_image(image_path, preprocess_mode)
+    if not image_data:
+        return {
+            "error": "Failed to preprocess image",
+            "raw_text": "",
+            "cleaned_text": "",
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
+            "routes": [],
+            "confidence": 0.0,
+            "languages_used": language_codes,
+        }
+
+    confidence = 0.0
+    raw_text = ""
+    if ocr_backend == "easyocr":
+        raw_text = extract_text_easyocr(image_data["enhanced"])
+        confidence = 85.0 if raw_text.strip() else 0.0
+    elif ocr_backend == "paddle":
+        raw_text = extract_text_paddleocr(image_data["enhanced"])
+        confidence = 88.0 if raw_text.strip() else 0.0
+    else:
+        ocr_results = run_multiple_ocr_passes(image_data, language_codes=language_codes)
+        raw_text, confidence = combine_ocr_results(ocr_results)
+        confidence = float(confidence) * 100.0 if confidence <= 1.0 else float(confidence)
+
+    if not raw_text:
+        return {
+            "image_path": image_path,
+            "preprocessed_image": image_data.get("enhanced", ""),
+            "raw_text": "",
+            "cleaned_text": "",
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
+            "routes": [],
+            "confidence": 0.0,
+            "languages_used": language_codes,
+        }
+
+    table_meds = extract_table_prescription_medicines(raw_text)
+    if table_meds:
+        entities = entities_from_table_medicines(table_meds)
+        corrected_text = raw_text
+        extraction_mode = "prescription_table"
+    else:
+        entities = extract_medical_entities(raw_text)
+        corrected_text = apply_medical_dictionary_correction(
+            raw_text, entities.get("medications")
+        )
+        extraction_mode = "general"
+
+    results = {
+        "image_path": image_path,
+        "preprocessed_image": image_data["enhanced"],
+        "raw_text": raw_text,
+        "cleaned_text": corrected_text,
+        "medications": entities["medications"],
+        "dosages": entities["dosages"],
+        "frequencies": entities["frequencies"],
+        "routes": entities["routes"],
+        "durations": entities.get("durations", []),
+        "structured_prescriptions": entities.get("structured_prescriptions", []),
+        "medication_count": len(entities["medications"]),
+        "confidence": confidence,
+        "languages_used": language_codes,
+        "ocr_engine": ocr_backend,
+        "extraction_mode": extraction_mode,
+    }
+
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        base_no = os.path.splitext(os.path.basename(image_path))[0]
+        out_json = os.path.join(output_dir, f"{base_no}_results.json")
+        try:
+            with open(out_json, "w", encoding="utf-8") as f:
+                json.dump(results, f, indent=4)
+        except Exception as exc:
+            print(f"Could not save OCR results: {exc}")
+
+    return results
+
+
+# Backwards-compatible alias used by existing code paths
+def process_prescription_with_enhanced_ocr(image_path, output_dir=None, languages=None):
+    """Compatibility wrapper mapping to the modular implementation with defaults."""
+    return process_prescription_modular(
+        image_path,
+        output_dir,
+        ocr_backend="tesseract",
+        preprocess_mode="auto",
+        languages=languages,
+    )
+
+# ---------------- Google Lens-style OCR Ensemble -----------------
+def _run_available_backends(image_path, image_data):
+    texts = []
+    # Tesseract (enhanced image with multi-psm passes)
+    try:
+        t_res = run_multiple_ocr_passes(image_data)
+        t_text, t_conf = combine_ocr_results(t_res)
+        if t_text:
+            texts.append((t_text, float(t_conf)))
+    except Exception as e:
+        print(f"Tesseract pass error: {e}")
+    # EasyOCR
+    try:
+        if easyocr is not None:
+            e_text = extract_text_easyocr(image_data['enhanced'])
+            if e_text:
+                texts.append((e_text, 0.85))
+    except Exception as e:
+        print(f"EasyOCR ensemble error: {e}")
+    # PaddleOCR
+    try:
+        if PaddleOCR is not None:
+            p_text = extract_text_paddleocr(image_data['enhanced'])
+            if p_text:
+                texts.append((p_text, 0.88))
+    except Exception as e:
+        print(f"PaddleOCR ensemble error: {e}")
+    return texts
+
+def _merge_texts_google_style(text_with_scores):
+    if not text_with_scores:
+        return "", 0.0
+    # Simple heuristic: pick the longest high-confidence text
+    sorted_candidates = sorted(text_with_scores, key=lambda x: (len(x[0]), x[1]))
+    best_text, best_score = sorted_candidates[-1]
+    # Light cleanup: join broken hyphen lines, normalize spaces
+    best_text = re.sub(r"\n\s*\n+", "\n", best_text)
+    best_text = re.sub(r"[ \t]+", " ", best_text)
+    return best_text.strip(), float(best_score)
+
+def _extract_structured_items(text):
+    # Use existing entity extractor and then enrich with per-line parsing
+    entities = extract_medical_entities(text)
+    medications = entities.get("medications", [])
+    dosages = entities.get("dosages", [])
+    frequencies = entities.get("frequencies", [])
+    routes = entities.get("routes", [])
+    # Try to map meds to nearby dosage/frequency by line proximity
+    structured = []
+    lines = [l.strip() for l in text.split('\n') if l.strip()]
+    for med in medications:
+        best_line = None
+        for line in lines:
+            if re.search(r"\b" + re.escape(med) + r"\b", line, re.IGNORECASE):
+                best_line = line
+                break
+        dose = None
+        freq = None
+        if best_line:
+            m_dose = re.search(r"(\d+[\.\d]*\s*(?:mg|mcg|g|gm|ml|mL|units|tab(?:let)?s?|caps?|cap))", best_line, re.IGNORECASE)
+            if m_dose:
+                dose = m_dose.group(1)
+            m_freq = re.search(r"(\d+\+\d+\+\d+|q\d+h|\b(?:od|bd|tds|qid|bid|tid)\b|once daily|twice daily|three times daily)", best_line, re.IGNORECASE)
+            if m_freq:
+                freq = m_freq.group(1)
+        if dose is None:
+            dose = next((d for d in dosages if re.search(r"\b" + re.escape(med) + r"\b", text, re.IGNORECASE)), None)
+        if freq is None and frequencies:
+            freq = frequencies[0]
+        structured.append({
+            "name": med,
+            "dose": dose,
+            "frequency": freq,
+        })
+    return structured, dosages, frequencies, routes
+
+def process_prescription_google_style(image_path, output_dir=None):
+    try:
+        os.makedirs(output_dir or os.path.dirname(image_path), exist_ok=True)
+        # Prefer advanced preprocessing; fall back to basic
+        image_data = advanced_preprocess_image(image_path)
         if not image_data:
-            logger.error("Preprocessing failed for %s", image_path)
+            image_data = preprocess_image(image_path)
+        if not image_data:
             return {
                 "error": "Failed to preprocess image",
                 "raw_text": "",
@@ -1550,138 +702,10 @@ def process_prescription_with_enhanced_ocr(image_path, output_dir=None, language
                 "frequencies": [],
                 "routes": []
             }
-        
-        language_codes = _sanitize_language_codes(languages)
-        runtime_settings = _load_runtime_settings()
-        ocr_mode = (runtime_settings.get('mode') or 'auto').lower()
-        quality_threshold = _coerce_setting(
-            runtime_settings.get('quality_threshold'),
-            HANDWRITING_QUALITY_THRESHOLD,
-        )
-        medical_signal_threshold = _coerce_setting(
-            runtime_settings.get('medical_signal_threshold'),
-            MEDICAL_SIGNAL_THRESHOLD,
-        )
-        selection_margin = _coerce_setting(
-            runtime_settings.get('selection_margin'),
-            HANDWRITING_SELECTION_MARGIN,
-        )
-        min_score = _coerce_setting(
-            runtime_settings.get('min_score'),
-            HANDWRITING_MIN_SCORE,
-        )
-
-        # STEP 2: Run multiple OCR passes with different preprocessing (Tesseract)
-        ocr_results = run_multiple_ocr_passes(image_data, language_codes=language_codes)
-        
-        # STEP 3: Combine text from all OCR passes
-        raw_text, confidence = combine_ocr_results(ocr_results)
-        combined_score, text_quality, medical_signal = evaluate_text_candidate(raw_text)
+        # Ensemble of OCR engines (Lens-like behavior)
+        texts = _run_available_backends(image_path, image_data)
+        raw_text, conf = _merge_texts_google_style(texts)
         if not raw_text:
-            logger.info("Tesseract returned no text; will try EasyOCR then PaddleOCR for handwriting.")
-        if ocr_mode == 'force_handwriting':
-            raw_text = ""
-            confidence = 0.0
-            combined_score = 0.0
-            text_quality = 0.0
-            medical_signal = 0.0
-
-        handwriting_attempted = False
-        handwriting_used = False
-        paddleocr_attempted = False
-        paddleocr_used = False
-
-        force_handwriting = ocr_mode == 'force_handwriting'
-        force_tesseract = ocr_mode == 'force_tesseract'
-        force_paddleocr = ocr_mode == 'force_paddleocr'
-
-        # When Tesseract returns empty (e.g. handwritten prescription), try EasyOCR first
-        # then PaddleOCR. EasyOCR is generally better for handwriting.
-        should_try_handwriting = (
-            force_handwriting
-            or (not force_tesseract and not force_paddleocr and (
-                not raw_text
-                or text_quality < quality_threshold
-                or combined_score < min_score
-                or medical_signal < medical_signal_threshold
-            ))
-        )
-        should_try_paddle = (
-            force_paddleocr
-            or (not raw_text or text_quality < quality_threshold or combined_score < min_score)
-        )
-
-        # Try EasyOCR first when we have no or poor text (handwritten-friendly)
-        if should_try_handwriting and easyocr is not None:
-            handwriting_attempted = True
-            handwriting_text, handwriting_confidence = run_handwriting_ocr(image_path, language_codes)
-            handwriting_score, handwriting_quality, handwriting_signal = evaluate_text_candidate(handwriting_text)
-
-            should_switch = False
-            if handwriting_text:
-                if not raw_text:
-                    should_switch = True
-                elif handwriting_score >= combined_score + selection_margin:
-                    should_switch = True
-                elif combined_score < min_score and handwriting_score > combined_score:
-                    should_switch = True
-                elif medical_signal < medical_signal_threshold and handwriting_signal > medical_signal:
-                    should_switch = True
-
-            if should_switch:
-                raw_text = handwriting_text
-                confidence = handwriting_confidence
-                text_quality = handwriting_quality
-                medical_signal = handwriting_signal
-                combined_score = handwriting_score
-                handwriting_used = True
-                if handwriting_text:
-                    logger.info("Using EasyOCR (handwriting) result: %d chars", len(handwriting_text))
-        elif force_handwriting:
-            handwriting_attempted = True
-
-        # Then try PaddleOCR if still no/poor text
-        if should_try_paddle and PADDLEOCR_AVAILABLE and (not raw_text or not handwriting_used):
-            paddleocr_attempted = True
-            paddleocr_text, paddleocr_confidence = run_paddleocr(image_path, language_codes)
-            paddleocr_score, paddleocr_quality, paddleocr_signal = evaluate_text_candidate(paddleocr_text)
-
-            should_switch_paddle = False
-            if paddleocr_text:
-                if not raw_text:
-                    should_switch_paddle = True
-                elif paddleocr_score >= combined_score + selection_margin:
-                    should_switch_paddle = True
-                elif combined_score < min_score and paddleocr_score > combined_score:
-                    should_switch_paddle = True
-                elif medical_signal < medical_signal_threshold and paddleocr_signal > medical_signal:
-                    should_switch_paddle = True
-
-            if should_switch_paddle:
-                raw_text = paddleocr_text
-                confidence = paddleocr_confidence
-                text_quality = paddleocr_quality
-                medical_signal = paddleocr_signal
-                combined_score = paddleocr_score
-                paddleocr_used = True
-                if paddleocr_text:
-                    logger.info("Using PaddleOCR result: %d chars", len(paddleocr_text))
-
-        # Final fallback: if still no text, try EasyOCR once more with English only (handwriting)
-        if not raw_text and easyocr is not None:
-            logger.info("Final fallback: trying EasyOCR with English only.")
-            fallback_text, fallback_conf = run_handwriting_ocr(image_path, language_codes=["eng"])
-            if fallback_text:
-                raw_text = fallback_text
-                confidence = fallback_conf
-                handwriting_used = True
-                logger.info("Final fallback EasyOCR extracted %d chars.", len(fallback_text))
-        
-        # Return a basic structure even if text extraction fails
-        # This will allow trained images to still work
-        if not raw_text:
-            strict_medicines = extract_medicines_strict("")  # Empty text returns empty array
-            strict_medicines = validate_medicines(strict_medicines)  # Apply validation
             return {
                 "image_path": image_path,
                 "preprocessed_image": image_data.get("enhanced", ""),
@@ -1691,83 +715,36 @@ def process_prescription_with_enhanced_ocr(image_path, output_dir=None, language
                 "dosages": [],
                 "frequencies": [],
                 "routes": [],
-                "durations": [],
-                "medicines_strict": strict_medicines,
-                "confidence": float(confidence) * 100 if confidence else 50.0,
-                "languages_used": language_codes,
-                "ocr_engine": "paddleocr" if paddleocr_used else ("handwriting" if handwriting_used else "tesseract"),
-                "paddleocr_attempted": paddleocr_attempted,
-                "paddleocr_used": paddleocr_used,
-                "handwriting_attempted": handwriting_attempted,
-                "handwriting_detected": handwriting_used,
-                "text_quality": text_quality,
-                "medical_signal": medical_signal,
-                "ocr_mode": ocr_mode,
+                "confidence": 0.0,
             }
-        
-        # STEP 4: Apply medical dictionary correction
         corrected_text = apply_medical_dictionary_correction(raw_text)
-        
-        # STEP 5: Extract medical entities using STRICT extraction rules
-        strict_medicines = extract_medicines_strict(corrected_text)
-        
-        # STEP 6: Apply hard validation filter to block fake/hallucinated medicines
-        strict_medicines = validate_medicines(strict_medicines)
-        
-        
-        # Convert strict format to backward-compatible format
-        medicines_list = strict_medicines.get("medicines", [])
-        medications = []
-        dosages = []
-        frequencies = []
-        routes = []
-        durations = []
-        
-        for med in medicines_list:
-            medications.append(med.get("name", "Not mentioned"))
-            dosages.append(med.get("strength", "Not mentioned"))
-            frequencies.append(med.get("frequency", "Not mentioned"))
-            routes.append(med.get("route", "Not mentioned"))
-            durations.append(med.get("duration", "Not mentioned"))
-        
-        # Build the results
+        structured, dosages, frequencies, routes = _extract_structured_items(corrected_text)
+        # Build results
         results = {
             "image_path": image_path,
-            "preprocessed_image": image_data["enhanced"],
+            "preprocessed_image": image_data.get("enhanced", ""),
             "raw_text": raw_text,
             "cleaned_text": corrected_text,
-            "medications": medications,
-            "dosages": dosages,
-            "frequencies": frequencies,
-            "routes": routes,
-            "durations": durations,
-            "medicines_strict": strict_medicines,  # Include strict format for new code
-            "confidence": float(confidence) * 100 if confidence else 90.0,
-            "languages_used": language_codes,
-            "ocr_engine": "paddleocr" if paddleocr_used else ("handwriting" if handwriting_used else "tesseract"),
-            "paddleocr_attempted": paddleocr_attempted,
-            "paddleocr_used": paddleocr_used,
-            "handwriting_detected": handwriting_used,
-            "handwriting_attempted": handwriting_attempted,
-            "text_quality": text_quality,
-            "medical_signal": medical_signal,
-            "ocr_mode": ocr_mode,
+            "medications": [s["name"] for s in structured] if structured else [],
+            "dosages": list(set(dosages)),
+            "frequencies": list(set(frequencies)),
+            "routes": list(set(routes)),
+            "items": structured,  # structured name/dose/frequency triplets
+            "confidence": float(conf) * 100.0 if conf else 85.0,
         }
-        
-        # Save results to file if output_dir is provided
-        if results_path:
+        # Optionally save JSON alongside
+        if output_dir:
+            base = os.path.basename(image_path)
+            base_no = os.path.splitext(base)[0]
+            out_json = os.path.join(output_dir, f"{base_no}_results.json")
             try:
-                with open(results_path, 'w') as f:
+                with open(out_json, 'w') as f:
                     json.dump(results, f, indent=4)
             except Exception as e:
-                print(f"Error saving results: {str(e)}")
-        
+                print(f"Could not save ensemble results: {e}")
         return results
-        
     except Exception as e:
-        print(f"Error in OCR processing: {str(e)}")
-        strict_medicines = extract_medicines_strict("")  # Empty text returns empty array
-        strict_medicines = validate_medicines(strict_medicines)  # Apply validation
+        print(f"Google-style OCR processing error: {e}")
         return {
             "error": f"Processing error: {str(e)}",
             "raw_text": "",
@@ -1775,75 +752,350 @@ def process_prescription_with_enhanced_ocr(image_path, output_dir=None, language
             "medications": [],
             "dosages": [],
             "frequencies": [],
+            "routes": []
+        }
+
+def preprocess_image(image_path):
+    """Simple and effective image preprocessing for prescription OCR."""
+    try:
+        # Read the image
+        image = cv2.imread(image_path)
+        if image is None:
+            return None
+            
+        # Simple preprocessing steps for handwritten prescriptions
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        denoised = cv2.fastNlMeansDenoising(gray)
+        thresh = cv2.adaptiveThreshold(
+            denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+            cv2.THRESH_BINARY, 11, 2
+        )
+        kernel = np.ones((1, 1), np.uint8)
+        processed = cv2.dilate(thresh, kernel, iterations=1)
+        
+        # Create filename for enhanced image
+        base_name = os.path.basename(image_path)
+        dir_name = os.path.dirname(image_path)
+        enhanced_name = f"enhanced_{base_name}"
+        enhanced_path = os.path.join(dir_name, enhanced_name)
+        
+        # Save enhanced image
+        cv2.imwrite(enhanced_path, processed)
+        
+        return {
+            "original": image_path,
+            "enhanced": enhanced_path,
+            "processed_image": processed
+        }
+    except Exception as e:
+        print(f"Error in image preprocessing: {str(e)}")
+        return None
+
+def run_multiple_ocr_passes(image_data, language_codes=None, max_configs=None):
+    """Run multiple OCR passes with different Tesseract configs and PSM modes."""
+    try:
+        results = []
+        tess_configs = build_tesseract_config_list(language_codes)
+        if max_configs:
+            tess_configs = tess_configs[:max_configs]
+
+        print("=== Starting OCR passes ===")
+
+        # Try enhanced image with different configs
+        if 'enhanced' in image_data and image_data['enhanced'] and os.path.exists(image_data['enhanced']):
+            print(f"Trying enhanced image: {image_data['enhanced']}")
+            for config, conf in tess_configs:
+                result_text = extract_text_tesseract(image_data['enhanced'], config=config)
+                if result_text and len(result_text.strip()) > 0:
+                    print(f"Config [{config}]: extracted {len(result_text)} chars")
+                    results.append((result_text, conf))
+                    break
+
+        # Try original image if enhanced failed
+        if not results and 'original' in image_data and image_data['original'] and os.path.exists(image_data['original']):
+            print(f"Trying original image: {image_data['original']}")
+            for config, conf in tess_configs:
+                result_text = extract_text_tesseract(image_data['original'], config=config)
+                if result_text and len(result_text.strip()) > 0:
+                    print(f"Config [{config}] on original: extracted {len(result_text)} chars")
+                    results.append((result_text, conf * 0.9))
+                    break
+        
+        # If we have no results yet, try different preprocessing on the image
+        if not results and 'enhanced' in image_data and image_data['enhanced']:
+            print("Trying inverted image...")
+            enhanced_img = cv2.imread(image_data['enhanced'])
+            if enhanced_img is not None:
+                inverted = cv2.bitwise_not(enhanced_img)
+                inverted_path = os.path.join(os.path.dirname(image_data['enhanced']), "inverted_temp.jpg")
+                cv2.imwrite(inverted_path, inverted)
+                result_text = extract_text_tesseract(inverted_path)
+                if result_text and len(result_text.strip()) > 0:
+                    print(f"Inverted image: Successfully extracted {len(result_text)} chars")
+                    results.append((result_text, 0.85))
+                else:
+                    print("Inverted image: No text extracted")
+                
+                # Clean up
+                try:
+                    os.remove(inverted_path)
+                except:
+                    pass
+        
+        print(f"=== OCR passes complete: {len(results)} successful passes ===")
+        
+        # If still no results, return an empty placeholder result that won't break the system
+        if not results:
+            print("WARNING: All OCR passes failed. No text extracted.")
+            return [("", 0.0)]
+            
+        return results
+    
+    except Exception as e:
+        print(f"Error in OCR passes: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return [("", 0.0)]
+
+def combine_ocr_results(results):
+    """Combine text from multiple OCR passes, handling improved empty results"""
+    try:
+        if not results:
+            return "", 0.0 # Return 0.0 confidence for no results
+            
+        all_text = []
+        confidence_scores = []
+        
+        for text, confidence in results: # Iterate directly over (text, confidence) tuples
+            if text:
+                all_text.append(text)
+                confidence_scores.append(float(confidence))
+        
+        if not all_text:
+            return "", 0.0
+            
+        # Combine text from all passes, give preference to the first pass
+        combined_text = all_text[0] if all_text else ""
+        
+        # Calculate average confidence
+        avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0.0
+        
+        return combined_text.strip(), avg_confidence
+    
+    except Exception as e:
+        print(f"Error combining OCR results: {str(e)}")
+        return "", 0.0
+
+def extract_medical_entities(text):
+    """Extract medical entities from the text with improved parsing"""
+    medications = []
+    dosages = []
+    frequencies = []
+    routes = []
+
+    if not text or not text.strip():
+        return {
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
             "routes": [],
-            "durations": [],
-            "medicines_strict": strict_medicines,
-            "languages_used": _sanitize_language_codes(languages),
+        }
+
+    # Prefer numbered prescription table rows (bold medicine lines)
+    table_meds = extract_table_prescription_medicines(text)
+    if table_meds:
+        return entities_from_table_medicines(table_meds)
+
+    # Split text into lines for better parsing
+    lines = text.split('\n')
+    
+    # Use spaCy for entity recognition if available
+    if nlp:
+        doc = nlp(text)
+        for ent in doc.ents:
+            if ent.label_ in ["CHEMICAL", "DRUG", "MEDICATION"]:
+                med_name = re.sub(r'\s+\d+\s*\w*\b', '', ent.text)
+                med_name = re.sub(r'\b(once|twice|three|four)(\s+times)?\s+(daily|a\s+day)\b', '', med_name, flags=re.IGNORECASE)
+                med_name = re.sub(r'\b(every|each)\s+(morning|evening|night|day|hour|hourly)\b', '', med_name, flags=re.IGNORECASE)
+                med_name = re.sub(r'\b(qd|bid|tid|qid|prn|od|q\d+h)\b', '', med_name, flags=re.IGNORECASE)
+                med_name = med_name.strip()
+                if med_name and len(med_name) > 2:
+                    medications.append(med_name)
+    
+    # Enhanced medicine name extraction - look for capitalized words/phrases that might be medicine names
+    # This helps find medicines not in dictionary
+    skip_words = [
+        'Patient', 'Doctor', 'Date', 'Name', 'Address', 'Phone',
+        'Prescription', 'Rx', 'Take', 'Before', 'After', 'Morning',
+        'Evening', 'Night', 'Food', 'Water', 'Day', 'Week', 'Month',
+    ]
+
+    for line in lines:
+        line = line.strip()
+        if not line or len(line) < 3:
+            continue
+        
+        # Pattern: Capitalized word(s) followed by numbers/units (likely medicine)
+        # Examples: "Paracetamol 500mg", "Amoxicillin 250mg", "Crocin 500"
+        med_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:\d+[\.\d]*\s*(?:mg|mcg|g|ml|tablet|capsule|tab|cap))'
+        matches = re.finditer(med_pattern, line)
+        for match in matches:
+            med_name = match.group(1).strip()
+            if med_name not in skip_words and len(med_name) > 2:
+                medications.append(med_name)
+        
+        # Pattern for medicine names with dashes/slashes (e.g., "Linets 5/25", "Losuco-50")
+        dash_med_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*[-/]\s*\d+'
+        matches = re.finditer(dash_med_pattern, line)
+        for match in matches:
+            med_name = match.group(1).strip()
+            if med_name not in skip_words and len(med_name) > 2:
+                medications.append(med_name)
+        
+        # Pattern: Medicine name followed by dosage pattern (e.g., "Medicine 1 tablet")
+        simple_med_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+\d+\s*(?:tablet|cap|mg|mcg|ml|g)\b'
+        matches = re.finditer(simple_med_pattern, line, re.IGNORECASE)
+        for match in matches:
+            med_name = match.group(1).strip()
+            if med_name not in skip_words and len(med_name) > 2:
+                medications.append(med_name)
+    
+    # Pattern for dosage (number + unit)
+    dosage_pattern = r'\b(\d+[\.\d]*)\s*(mg|mcg|mL|ml|g|gm|mg/mL|mEq|units|tablets?|caps?|tab|cap)\b'
+    dosage_matches = re.finditer(dosage_pattern, text, re.IGNORECASE)
+    for match in dosage_matches:
+        dosages.append(match.group(0))
+    
+    # Enhanced frequency patterns (including Indian format like 1+0+1)
+    freq_patterns = [
+        r'\b(once|twice|three times|four times)\s+daily\b',
+        r'\b(q\.?d|b\.?i\.?d|t\.?i\.?d|q\.?i\.?d|od|bd|tds|qid)\b',
+        r'\b(every|each)\s+(\d+)\s+(hours?|days?)\b',
+        r'\b(q)(\d+)(h)\b',
+        r'\bprn\b',
+        r'\bas needed\b',
+        r'\b\d+\+\d+\+\d+\b',  # Pattern like 1+0+1 (morning+afternoon+night)
+        r'\b\d+\s*x\s*\d+\b',   # Pattern like "2x3" (2 times, 3 days)
+        r'\b\d+\s+times?\s+(daily|a\s+day)\b'
+    ]
+    
+    for pattern in freq_patterns:
+        matches = re.finditer(pattern, text, re.IGNORECASE)
+        for match in matches:
+            freq_text = match.group(0)
+            if freq_text not in frequencies:
+                frequencies.append(freq_text)
+    
+    # Pattern for routes of administration
+    route_patterns = [
+        r'\b(oral(ly)?|by mouth|p\.?o\.)\b',
+        r'\b(intravenous|i\.?v\.)\b',
+        r'\b(intramuscular|i\.?m\.)\b',
+        r'\b(subcutaneous|s\.?c\.|sub-q)\b',
+        r'\b(topical(ly)?)\b',
+        r'\b(sublingual|s\.?l\.)\b'
+    ]
+    
+    for pattern in route_patterns:
+        matches = re.finditer(pattern, text, re.IGNORECASE)
+        for match in matches:
+            routes.append(match.group(0))
+    
+    # Clean medication names to remove any residual dosage or frequency info
+    clean_medications = []
+    seen = set()
+    for med in medications:
+        # Remove dosage and frequency information
+        clean_med = re.sub(r'\s+\d+\s*\w*\b', '', med).strip()
+        clean_med = re.sub(r'\b(once|twice|three|four)(\s+times)?\s+(daily|a\s+day)\b', '', clean_med, flags=re.IGNORECASE).strip()
+        clean_med = re.sub(r'\b(every|each)\s+(morning|evening|night|day|hour|hourly)\b', '', clean_med, flags=re.IGNORECASE).strip()
+        clean_med = re.sub(r'\b(qd|bid|tid|qid|prn|od|q\d+h)\b', '', clean_med, flags=re.IGNORECASE).strip()
+        
+        if clean_med and len(clean_med) > 2:
+            clean_med_lower = clean_med.lower()
+            if clean_med_lower not in seen:
+                seen.add(clean_med_lower)
+                clean_medications.append(clean_med)
+    
+    # Debug: Print extracted medicines for troubleshooting
+    if clean_medications:
+        print(f"Extracted {len(clean_medications)} medications: {clean_medications}")
+    else:
+        print("No medications extracted from text. Raw text preview:", text[:200])
+    
+    return {
+        "medications": clean_medications,
+        "dosages": list(set(dosages)),
+        "frequencies": list(set(frequencies)),
+        "routes": list(set(routes))
         }
 
 # ===================================================
 # Text Extraction using Tesseract OCR
 # ===================================================
-# PSM modes: 3=full auto, 4=single column, 5=block, 6=single block (default), 11=sparse text, 13=raw line
-# OEM: 0=legacy, 1=LSTM only, 2=legacy+LSTM, 3=default (LSTM + legacy)
-TESSERACT_PSM_FALLBACK = [6, 11, 4, 3, 13]
-TESSERACT_OEM = 3
-
-
-def extract_text_tesseract(image, config=None, language_codes=None):
-    """
-    Extract text using Pytesseract with production-ready config and fallbacks.
-
-    - Uses --oem 3 (LSTM + legacy) and --psm 6 (single block) by default.
-    - If config is provided, uses it; otherwise builds config from language_codes.
-    - Tries multiple PSM modes if the first attempt returns empty or fails.
-    - Accepts: file path (str), numpy array (BGR or grayscale).
-    """
-    def _run_ocr(img_input, cfg: str) -> str:
-        if isinstance(img_input, np.ndarray):
-            if len(img_input.shape) == 3:
-                img_pil = Image.fromarray(cv2.cvtColor(img_input, cv2.COLOR_BGR2RGB))
-            else:
-                img_pil = Image.fromarray(img_input)
-            return pytesseract.image_to_string(img_pil, config=cfg)
-        if isinstance(img_input, str) and os.path.exists(img_input):
-            return pytesseract.image_to_string(img_input, config=cfg)
-        return ""
-
-    effective_config = config
-    if effective_config is None:
-        configs = build_tesseract_configs(language_codes)
-        effective_config = configs[0][0] if configs else f"--oem {TESSERACT_OEM} --psm 6"
-
+def extract_text_tesseract(image, config=None):
+    """Extract text using Pytesseract with improved error handling"""
     try:
-        text = _run_ocr(image, effective_config)
-        text = (text or "").strip()
-        if text:
-            logger.debug("Tesseract extracted %d chars with config: %s", len(text), effective_config)
-            return text
-    except pytesseract.TesseractError as e:
-        logger.warning("Tesseract error (trying PSM fallbacks): %s", e)
-    except Exception as e:
-        logger.warning("Pytesseract exception: %s", e)
-
-    # Fallback: try other PSM modes with same language
-    lang_part = "-l eng"
-    if language_codes is not None:
-        codes = _sanitize_language_codes(language_codes)
-        if codes:
-            lang_part = "-l " + "+".join(codes)
-    for psm in TESSERACT_PSM_FALLBACK[1:]:
+        # Test Tesseract availability first
         try:
-            fallback_config = f"--oem {TESSERACT_OEM} --psm {psm} {lang_part}"
-            text = _run_ocr(image, fallback_config)
-            text = (text or "").strip()
-            if text:
-                logger.info("Tesseract succeeded with PSM %s", psm)
-                return text
-        except Exception:
-            continue
-    logger.debug("Tesseract returned no text for image")
-    return ""
+            pytesseract.get_tesseract_version()
+        except Exception as te:
+            print(f"ERROR: Tesseract not found or not accessible: {te}")
+            print(f"Tesseract path being used: {pytesseract.pytesseract.tesseract_cmd}")
+            return ""
+        
+        # Use optimized OCR config for better results
+        if config is None:
+            # Try PSM 6 first (single uniform block), if fails try PSM 11 (sparse text) or PSM 3 (auto)
+            config = '--psm 6 --oem 3'
+            # PSM 6: Assume a single uniform block of text
+            # PSM 11: Sparse text (good for prescriptions)
+            # OEM 3: Default OCR Engine Mode
+        
+        text = ""
+        
+        # Pytesseract works well with PIL Images or file paths
+        if isinstance(image, np.ndarray):
+            # Convert numpy array to PIL Image
+            if len(image.shape) == 3:
+                # Color image
+                image_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+            else:
+                # Grayscale image
+                image_pil = Image.fromarray(image)
+            
+            print(f"Extracting text from numpy array image, shape: {image.shape}")
+            text = pytesseract.image_to_string(image_pil, config=config, lang='eng')
+            
+        elif isinstance(image, str) and os.path.exists(image):
+            print(f"Extracting text from file: {image}")
+            # Read image and convert to PIL if needed
+            img = cv2.imread(image)
+            if img is not None:
+                # Try with original image
+                image_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                text = pytesseract.image_to_string(image_pil, config=config, lang='eng')
+                print(f"Text extracted (length: {len(text)}): {text[:100]}...")
+            else:
+                print(f"ERROR: Could not read image file: {image}")
+                return ""
+        else:
+            print(f"Unsupported image format. Type: {type(image)}, Path exists: {os.path.exists(image) if isinstance(image, str) else 'N/A'}")
+            return ""
+        
+        extracted_text = text.strip()
+        print(f"Successfully extracted {len(extracted_text)} characters from image")
+        return extracted_text
+        
+    except pytesseract.TesseractNotFoundError:
+        print("ERROR: Tesseract executable not found. Please install Tesseract OCR.")
+        print(f"Expected path: {pytesseract.pytesseract.tesseract_cmd}")
+        return ""
+    except Exception as e:
+        print(f"Pytesseract error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return ""
 
 # If running as a script
 if __name__ == "__main__":
@@ -1859,7 +1111,7 @@ if __name__ == "__main__":
     print(f"Processing image: {args.image}")
     
     # Process the prescription
-    results = process_prescription_with_enhanced_ocr(args.image, args.output)
+    results = process_prescription_modular(args.image, args.output)
     
     # Print the results
     if "error" in results:
@@ -1902,6 +1154,6 @@ if __name__ == "__main__":
         else:
             print("No routes detected")
         
-        print(f"\nConfidence: {results['confidence']:.1f}%")
+        print(f"\nConfidence: {results.get('confidence', 0):.1f}%")
         
         print("\nProcessing complete!")

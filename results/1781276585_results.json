@@ -1,0 +1,101 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1781275253_prachi.png",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1781275253_prachi.png",
+    "raw_text": "Tab.Zenflox OZ\r\nGut ok cap\r\nTab.Mlftal Spcs\r\nAndial",
+    "cleaned_text": "tab.zenflox oz\r\ngut ok cap\r\ntab.mlftal spcs\r\nandial",
+    "medications": [
+        "Zenflox Oz Gut Ok Cap",
+        "Tab",
+        "Zenflox",
+        "Mlftal",
+        "Andial"
+    ],
+    "dosages": [
+        "As directed",
+        "As directed",
+        "As directed",
+        "As directed",
+        "As directed"
+    ],
+    "frequencies": [
+        "As prescribed",
+        "As prescribed",
+        "As prescribed",
+        "As prescribed",
+        "As prescribed"
+    ],
+    "routes": [
+        "Follow doctor instructions",
+        "Follow doctor instructions",
+        "Follow doctor instructions",
+        "Follow doctor instructions",
+        "Follow doctor instructions"
+    ],
+    "durations": [
+        "Until finished",
+        "Until finished",
+        "Until finished",
+        "Until finished",
+        "Until finished"
+    ],
+    "structured_prescriptions": [
+        {
+            "name": "Zenflox Oz Gut Ok Cap",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Tab",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Zenflox",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Mlftal",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Andial",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 5,
+    "confidence": 98.0,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "extraction_mode": "trained",
+    "is_trained": true,
+    "trained_match": true,
+    "preprocessed_url": "/uploads/enhanced_1781275253_prachi.png",
+    "accuracy": {
+        "overall_accuracy": 98.0,
+        "character_accuracy": 98.0,
+        "word_accuracy": 98.0,
+        "medication_accuracy": 98.0
+    },
+    "patient_name": "samruddhi ",
+    "doctor_name": "dr.prachi",
+    "date": "2026-06-12",
+    "user_id": 9,
+    "language_labels": [
+        "English"
+    ]
+}

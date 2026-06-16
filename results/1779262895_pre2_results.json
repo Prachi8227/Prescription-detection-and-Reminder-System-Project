@@ -1,0 +1,26 @@
+{
+    "image_path": "d:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\1779262895_pre2.jpeg",
+    "preprocessed_image": "d:\\Project\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1779262895_pre2.jpeg",
+    "raw_text": "SN.\n\n2tun / sake,\n\ntp\n\n2b. Mo xiend Cy 62x \u201466)\n\nP38\n\nasta\n\naaa\u2019\n\n- \u00ae \u201ca a = @\n\nrrr\n\nEy\n\nas\n\naa\n\n\u201cTVusQ Px\n\nGr FS\n\nabot",
+    "cleaned_text": "SN.\n\n2tun / sake,\n\ntp\n\n2b. Mo xiend Cy 62x \u201466)\n\nP38\n\naspirin\n\naaa\u2019\n\n- \u00ae \u201ca a = @\n\nrrr\n\nEy\n\nas\n\naa\n\n\u201cTVusQ Px\n\nGr FS\n\nabot",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "confidence": 84.33333333333334,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.6341666666666668,
+    "medical_signal": 0.15789473684210525,
+    "ocr_mode": "auto"
+}

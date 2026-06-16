@@ -611,92 +611,84 @@
     font-weight: 600;
 }
 
-/* Professional medication table header (for desktop) */
-.medication-table-header {
-    display: none;
+.medication-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.medication-table-header,
+.medication-row {
+    display: grid;
     grid-template-columns: 2fr 1.2fr 1.2fr 1fr 1.5fr;
     gap: 16px;
+    align-items: center;
+}
+
+.medication-table-header {
+    display: none;
     padding: 12px 20px;
     background: rgba(0, 219, 222, 0.12);
-    border-radius: 14px 14px 0 0;
+    border-radius: 14px;
     font-size: 0.75rem;
     font-weight: 700;
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.medication-table-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.medication-row {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(243, 244, 255, 0.8) 100%);
+    border-radius: 16px;
+    padding: 14px 20px;
+    border: 1px solid rgba(229, 231, 235, 0.7);
+    box-shadow: 0 12px 30px -24px rgba(17, 24, 39, 0.45);
+}
+
+.med-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.med-label-mobile {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.med-cell span:last-child {
+    font-weight: 600;
+    color: #1f2937;
+    word-break: break-word;
+}
+
+.med-name-value {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #111827;
 }
 
 @media (min-width: 900px) {
     .medication-table-header { display: grid; }
+    .med-label-mobile { display: none; }
 }
 
-.medication-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 18px;
-}
-
-.medication-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(243, 244, 255, 0.8) 100%);
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid rgba(229, 231, 235, 0.7);
-    box-shadow: 0 20px 45px -28px rgba(17, 24, 39, 0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.medication-card h5 {
-    margin: 0;
-    color: #111827;
-    font-size: 1.05rem;
-    font-weight: 700;
-}
-
-.medication-card .med-name-title {
-    font-size: 0.7rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-}
-
-.medication-meta {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-}
-
-.med-chip-name { grid-column: 1 / -1; }
-.med-name-value { font-weight: 700; font-size: 1.05rem; color: #111827; }
-.med-chip-instruction { min-width: 140px; }
-
-.med-chip {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 14px;
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.chip-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.med-chip span {
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.medication-card p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #4b5563;
+@media (max-width: 899px) {
+    .medication-row {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 10px;
+    }
 }
 
 .details-grid {
@@ -872,7 +864,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cards.forEach(card => {
                 const text = (card.getAttribute('data-search') || '').toLowerCase();
                 if (!query || text.includes(query)) {
-                    card.style.display = 'flex';
+                    card.style.display = '';
                     visible++;
                 } else {
                     card.style.display = 'none';
@@ -1304,40 +1296,45 @@ document.addEventListener('DOMContentLoaded', function () {
     <section class="medications-section">
         <h4>Prescribed medicines</h4>
         {% if results.structured_prescriptions %}
-        <div class="medication-table-header">
-            <span>Medicine name</span>
-            <span>Dosage</span>
-            <span>Frequency</span>
-            <span>Duration</span>
-            <span>Instructions</span>
-        </div>
-        <div class="medication-grid" id="medicationGrid">
-            {% for med in results.structured_prescriptions %}
-            <article class="medication-card" data-search="{{ med.name }} {{ med.dosage }} {{ med.frequency }} {{ med.duration }} {{ med.instruction }}">
-                <div class="medication-meta">
-                    <div class="med-chip med-chip-name">
-                        <span class="chip-label">Medicine name</span>
+        <div class="medication-table">
+            <div class="medication-table-header">
+                <span>Medicine name</span>
+                <span>Dosage</span>
+                <span>Frequency</span>
+                <span>Duration</span>
+                <span>Instructions</span>
+            </div>
+            <div class="medication-table-body" id="medicationGrid">
+                {% set seen_medicines = [] %}
+                {% for med in results.structured_prescriptions %}
+                {% set med_name_key = (med.name or '')|trim|lower %}
+                {% if med_name_key and med_name_key not in seen_medicines %}
+                {% set seen_medicines = seen_medicines + [med_name_key] %}
+                <article class="medication-row medication-card" data-search="{{ med.name }} {{ med.dosage }} {{ med.frequency }} {{ med.duration }} {{ med.instruction }}">
+                    <div class="med-cell">
+                        <span class="med-label-mobile">Medicine name</span>
                         <span class="med-name-value">{{ med.name }}</span>
                     </div>
-                    <div class="med-chip">
-                        <span class="chip-label">Dosage</span>
+                    <div class="med-cell">
+                        <span class="med-label-mobile">Dosage</span>
                         <span>{{ med.dosage or '—' }}</span>
                     </div>
-                    <div class="med-chip">
-                        <span class="chip-label">Frequency</span>
+                    <div class="med-cell">
+                        <span class="med-label-mobile">Frequency</span>
                         <span>{{ med.frequency or '—' }}</span>
                     </div>
-                    <div class="med-chip">
-                        <span class="chip-label">Duration</span>
+                    <div class="med-cell">
+                        <span class="med-label-mobile">Duration</span>
                         <span>{{ med.duration or '—' }}</span>
                     </div>
-                    <div class="med-chip med-chip-instruction">
-                        <span class="chip-label">Instructions</span>
+                    <div class="med-cell">
+                        <span class="med-label-mobile">Instructions</span>
                         <span>{{ med.instruction or '—' }}</span>
                     </div>
-                </div>
-            </article>
-            {% endfor %}
+                </article>
+                {% endif %}
+                {% endfor %}
+            </div>
         </div>
         <div id="medicationEmptyState" class="no-results" style="display:none;">
             <p>No medicines match your search.</p>

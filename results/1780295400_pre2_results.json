@@ -1,0 +1,253 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1780295400_pre2.jpeg",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1780295400_pre2.jpeg",
+    "raw_text": "<j Haemoglobin\nFuid Chor\n\nName Sr\nProne MS: PRACHE MILIND YADAV (21, Fem Date & Time + 20-Sep-2025 03:26 pm We Glucose (eAG) 3\nor iis Ret. by + Dr, R.CHANDRAKANT Abas\n\nAddress: pattankodoli\n\nMesleits 2a Testy cine one\n2) FE 5 Bocut-off point of 5 5%\n) MILON TABLET 0-0-1 \u2018aed -3 HART Be are a better indicator of i\n0 + Desogestrel 0,15 MG + Ethinyl estradiol 0.02 MG\nTiming : 1 aft-andaontaz ansemiatespecially\nNotes : 21 fae qehar gare wanra act yam rhabt war, 29 fRererciare vite\u00e9t at tara, mfeiem oTsteT GT ae\nRawtandh from the HDALC val\nex eTarGt at ts Se WEE s Haemoglobinopathies in}\nAdvice: WEIGHT REDUCTION\nF an alternate platform\nte ureoft: SR INSULIN a paevetnis 0\n_ js state detected (D10/\nNOTES: ties athena Feccteer earerrenetenrster serdar fester arerrnetcery eet eores ara ee-arararersh ae wari aver) elect rarer TET ATA, wie aba ste TL patients, following v\nwear an. -6to7 %,\n\nPRIOR APPOINTHENT COMPULSORY APPOINTMENT NO.9529093195 ex\nBlood test to be done from NABL accredited lab.For home blood collection call on 9172942022/9561221632 ae\n\n@eauranft :3 months (20-Dec-2025 - Saturday)",
+    "cleaned_text": "<j Haemoglobin\nFuid Chor\n\nName Sr\nProne MS: paracetamol MILIND YADAV (21, Fem Date & Time + 20-Sep-2025 03:26 pm We fluconazole (eAG) 3\nor iis Ret. by + Dr, R.CHANDRAKANT gabapentins\n\nAddress: pattankodoli\n\nMesleits 2a Testy cine one\n2) FE 5 Bocut-off point of 5 5%\n) MILON rabeprazole 0-0-1 \u2018aed -3 HART Be are a better indicator of i\n0 + Desogestrel 0,15 MG + Ethinyl estradiol 0.02 MG\nTiming : 1 aft-andaontaz ansemiatespecially\nNotes : 21 fae qehar gare wanra with food yam rhabt warfarin, 29 fRererciare vite\u00e9t at hydroxyzine, mfeiem oTsteT GT ae\nRawtandh from the HDALC val\nex eTarGt at ts Se WEE s Haemoglobinopathies in}\nAdvice: WEIGHT REDUCTION\nF an alternate platform\nte ureoft: SR insulin a paevetnis 0\n_ js state detected (D10/\nNOTES: ties athena Feccteer earerrenetenrster serdar fester arerrnetcery eet eores ara ee-arararersh ae warfarini aver) elect rarer TET ATA, wie gabapentin ste TL patients, following v\nwear an. -6to7 %,\n\nPRIOR APPOINTHENT COMPULSORY APPOINTMENT NO.9529093195 ex\nBlood test to be done from NABL accredited lab.For home blood collection paracetamol on 9172942022/9561221632 ae\n\n@eauranft :3 months (20-Dec-2025 - Saturday)",
+    "medications": [
+        "FE 5 Bocut-off point of 5",
+        "lisinopril",
+        "paracetamol",
+        "Name Sr",
+        "MILIND",
+        "YADAV",
+        "CHANDRAKANT",
+        "MILON",
+        "HART",
+        "HDALC",
+        "WEIGHT",
+        "REDUCTION",
+        "NOTES",
+        "PRIOR",
+        "APPOINTHENT",
+        "COMPULSORY",
+        "NABL"
+    ],
+    "dosages": [
+        "Not mentioned",
+        "15 mg",
+        "9172942022",
+        "2025",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "frequencies": [
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "routes": [
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "durations": [
+        "Not mentioned",
+        "Not mentioned",
+        "3 months",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "medicines_strict": {
+        "medicines": [
+            {
+                "name": "FE 5 Bocut-off point of 5",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "FE 5 Bocut-off point of 5"
+            },
+            {
+                "name": "lisinopril",
+                "strength": "15 mg",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "estradiol"
+            },
+            {
+                "name": "paracetamol",
+                "strength": "9172942022",
+                "frequency": "Not mentioned",
+                "duration": "3 months",
+                "route": "Not mentioned",
+                "evidence": "paracetamol on"
+            },
+            {
+                "name": "Name Sr",
+                "strength": "2025",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "name sr"
+            },
+            {
+                "name": "MILIND",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "MILIND"
+            },
+            {
+                "name": "YADAV",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "YADAV"
+            },
+            {
+                "name": "CHANDRAKANT",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "CHANDRAKANT"
+            },
+            {
+                "name": "MILON",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "MILON"
+            },
+            {
+                "name": "HART",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "HART"
+            },
+            {
+                "name": "HDALC",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "HDALC"
+            },
+            {
+                "name": "WEIGHT",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "WEIGHT"
+            },
+            {
+                "name": "REDUCTION",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "REDUCTION"
+            },
+            {
+                "name": "NOTES",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "NOTES"
+            },
+            {
+                "name": "PRIOR",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "PRIOR"
+            },
+            {
+                "name": "APPOINTHENT",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "APPOINTHENT"
+            },
+            {
+                "name": "COMPULSORY",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "COMPULSORY"
+            },
+            {
+                "name": "NABL",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "NABL"
+            }
+        ]
+    },
+    "confidence": 84.33333333333334,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.8137331677065571,
+    "medical_signal": 0.12578616352201258,
+    "ocr_mode": "auto"
+}

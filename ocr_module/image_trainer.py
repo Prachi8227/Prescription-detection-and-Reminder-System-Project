@@ -6,6 +6,63 @@ import hashlib
 from PIL import Image
 import shutil
 
+def is_usable_trained_result(ocr_results):
+    """Return True when cached training data has displayable text or medicines."""
+    if not ocr_results or not isinstance(ocr_results, dict):
+        return False
+    if (ocr_results.get("raw_text") or "").strip():
+        return True
+    if ocr_results.get("structured_prescriptions"):
+        return True
+    if ocr_results.get("medications"):
+        return True
+    return False
+
+
+def normalize_trained_results(ocr_results):
+    """Ensure trained OCR payloads include text and medicine fields for the UI."""
+    results = dict(ocr_results or {})
+    structured = results.get("structured_prescriptions") or []
+
+    if structured and not results.get("medications"):
+        results["medications"] = [
+            m.get("name")
+            for m in structured
+            if isinstance(m, dict) and (m.get("name") or "").strip()
+        ]
+        results["dosages"] = [
+            m.get("dosage", "As directed")
+            for m in structured
+            if isinstance(m, dict) and (m.get("name") or "").strip()
+        ]
+        results["frequencies"] = [
+            m.get("frequency", "As prescribed")
+            for m in structured
+            if isinstance(m, dict) and (m.get("name") or "").strip()
+        ]
+        results["durations"] = [
+            m.get("duration", "Until finished")
+            for m in structured
+            if isinstance(m, dict) and (m.get("name") or "").strip()
+        ]
+        results["routes"] = [
+            m.get("instruction", "Follow doctor instructions")
+            for m in structured
+            if isinstance(m, dict) and (m.get("name") or "").strip()
+        ]
+
+    if (results.get("raw_text") or "").strip() or structured or results.get("medications"):
+        results.pop("error", None)
+
+    results["is_trained"] = True
+    results["trained_match"] = True
+    if results.get("extraction_mode") not in ("prescription_table", "trained"):
+        results["extraction_mode"] = "trained"
+    results["confidence"] = results.get("confidence") or 100.0
+    results["medication_count"] = len(structured) or len(results.get("medications") or [])
+    return results
+
+
 class ImageTrainer:
     """Class to handle training the system with specific image-text pairs"""
     
@@ -107,11 +164,13 @@ class ImageTrainer:
             print(f"[ImageTrainer] Error copying image {image_path} to {saved_image_path}: {e}")
             return False
         
+        normalized = normalize_trained_results(ocr_results)
+
         # Add to database
         self.database[hash_data['content_hash']] = {
             "perceptual_hash": hash_data['perceptual_hash'],
             "image_path": saved_image_path,
-            "ocr_results": ocr_results
+            "ocr_results": normalized
         }
         
         # Save the updated database
@@ -133,7 +192,9 @@ class ImageTrainer:
         # First try exact content match
         if hash_data['content_hash'] in self.database:
             print(f"Exact content match found for {image_path}")
-            return self.database[hash_data['content_hash']]['ocr_results']
+            return normalize_trained_results(
+                self.database[hash_data['content_hash']]['ocr_results']
+            )
         
         # If no exact match, try perceptual hash matching
         query_hash = hash_data['perceptual_hash']
@@ -149,7 +210,7 @@ class ImageTrainer:
         # Return the match if it's below the similarity threshold
         if best_distance <= similarity_threshold and best_match:
             print(f"Similar image match found with distance {best_distance}")
-            return best_match['ocr_results']
+            return normalize_trained_results(best_match['ocr_results'])
         
         return None
 

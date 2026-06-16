@@ -1,34 +1,47 @@
 {
     "60789f5426518b2606d3196c0d668e47": {
         "perceptual_hash": "1101010110000010101011110111011101010100000011111101100110000000",
-        "image_path": "training_data\\images\\60789f5426518b2606d3196c0d668e47.jpg",
+        "image_path": "training_data\\images\\60789f5426518b2606d3196c0d668e47.jpeg",
         "ocr_results": {
-            "image_path": "D:\\Project\\mProject\\mediscribe_app\\uploads\\1764513832_pic.jpg",
-            "preprocessed_image": "D:\\Project\\mProject\\mediscribe_app\\uploads\\enhanced_1764513832_pic.jpg",
-            "raw_text": "Moxikind CV\r\nfepanil \r\nTusq",
-            "cleaned_text": "moxikind cv\r\nfepanil \r\ntusq",
+            "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1781275149_WhatsApp_Image_2025-11-29_at_8.37.36_PM.jpeg",
+            "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1781275149_WhatsApp_Image_2025-11-29_at_8.37.36_PM.jpeg",
+            "raw_text": "Tab.Moxikind CV 625\r\nTab.Fipanil 500\r\nsup TusQ DX",
+            "cleaned_text": "tab.moxikind cv 625\r\ntab.fipanil 500\r\nsup tusq dx",
             "medications": [],
             "dosages": [],
             "frequencies": [],
             "routes": [],
             "durations": [],
-            "medicines_strict": {
-                "medicines": []
-            },
-            "confidence": 87.4,
+            "structured_prescriptions": [
+                {
+                    "name": "Moxikind Cv",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Fipanil",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Moxikind",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                }
+            ],
+            "medication_count": 3,
+            "confidence": 98.0,
             "languages_used": [
                 "eng"
             ],
             "ocr_engine": "tesseract",
-            "paddleocr_attempted": false,
-            "paddleocr_used": false,
-            "handwriting_detected": false,
-            "handwriting_attempted": false,
-            "text_quality": 0.8114627864601585,
-            "medical_signal": 0.10144927536231885,
-            "ocr_mode": "auto",
-            "structured_prescriptions": [],
-            "medication_count": 0
+            "extraction_mode": "general"
         }
     },
     "7f77e1e2f0accf62c72a620b3d919db2": {
@@ -139,6 +152,123 @@
                 }
             ],
             "medication_count": 11
+        }
+    },
+    "f51c007d9388b2864c6967fc4544bd7d": {
+        "perceptual_hash": "1101010110101010010010100101010110101010010101011011000000111110",
+        "image_path": "training_data\\images\\f51c007d9388b2864c6967fc4544bd7d.png",
+        "ocr_results": {
+            "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1781275253_prachi.png",
+            "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1781275253_prachi.png",
+            "raw_text": "Tab.Zenflox OZ\r\nGut ok cap\r\nTab.Mlftal Spcs\r\nAndial",
+            "cleaned_text": "tab.zenflox oz\r\ngut ok cap\r\ntab.mlftal spcs\r\nandial",
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
+            "routes": [],
+            "durations": [],
+            "structured_prescriptions": [
+                {
+                    "name": "Zenflox Oz Gut Ok Cap",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Tab",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Zenflox",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Mlftal",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Andial",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                }
+            ],
+            "medication_count": 5,
+            "confidence": 98.0,
+            "languages_used": [
+                "eng"
+            ],
+            "ocr_engine": "tesseract",
+            "extraction_mode": "general"
+        }
+    },
+    "6cf4bba0a59ae0afe436974515f332c5": {
+        "perceptual_hash": "1000000001111111000010001001111110001001100001010011011100111111",
+        "image_path": "training_data\\images\\6cf4bba0a59ae0afe436974515f332c5.jpeg",
+        "ocr_results": {
+            "error": "Processing error: cannot access local variable 'skip_words' where it is not associated with a value",
+            "raw_text": "METALEAP  mettrformin 500mg SR 1-0-0  daliy",
+            "cleaned_text": "metaleap  mettrformin 500mg sr 1-0-0  daliy",
+            "medications": [],
+            "dosages": [],
+            "frequencies": [],
+            "routes": [],
+            "durations": [],
+            "medicines_strict": {
+                "medicines": []
+            },
+            "languages_used": [
+                "eng"
+            ],
+            "structured_prescriptions": [
+                {
+                    "name": "Metaleap Mettrformin",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "500Mg",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Metaleap",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Mettrformin",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                },
+                {
+                    "name": "Daliy",
+                    "dosage": "As directed",
+                    "frequency": "As prescribed",
+                    "duration": "Until finished",
+                    "instruction": "Follow doctor instructions"
+                }
+            ],
+            "medication_count": 5
         }
     }
 }

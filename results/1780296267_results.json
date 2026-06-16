@@ -1,0 +1,67 @@
+{
+    "error": "Processing error: cannot access local variable 'skip_words' where it is not associated with a value",
+    "raw_text": "METALEAP  mettrformin 500mg SR 1-0-0  daliy",
+    "cleaned_text": "metaleap  mettrformin 500mg sr 1-0-0  daliy",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "medicines_strict": {
+        "medicines": []
+    },
+    "languages_used": [
+        "eng"
+    ],
+    "structured_prescriptions": [
+        {
+            "name": "Metaleap Mettrformin",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "500Mg",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Metaleap",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Mettrformin",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        },
+        {
+            "name": "Daliy",
+            "dosage": "As directed",
+            "frequency": "As prescribed",
+            "duration": "Until finished",
+            "instruction": "Follow doctor instructions"
+        }
+    ],
+    "medication_count": 5,
+    "accuracy": {
+        "overall_accuracy": 0.0,
+        "character_accuracy": 0.0,
+        "word_accuracy": 0.0,
+        "medication_accuracy": 0.0
+    },
+    "patient_name": "prachi",
+    "doctor_name": "dr.aditya",
+    "date": "2026-06-01",
+    "user_id": 7,
+    "language_labels": [
+        "English"
+    ]
+}

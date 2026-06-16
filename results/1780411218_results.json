@@ -1,0 +1,249 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1780411218_pre3.jpeg",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1780411218_pre3.jpeg",
+    "raw_text": "7742: Prachi Yedav (207, Female)\n\n9021761870\n\nOate &\n\n25-Sep-2023 06:14\n\nTime\n\nComplaints\n\ntEVER COLD COUGH . VOMITING . LOOSE MOTION\n\nOveanosis. WRT)\n\nK\n\nMedicine\n\nComa Timing - Freq. - Durstion\n\n1) PAM HO \u00ae\n\n1-\n\no-\n\n\u00b0\n\nBafere Food\n\nDaily - 5 Ceys\n\nCompeuter Ownperaiens 39 9G + Custis 49 0G\n\nTt\n\n1 Gefore trest\u00e9est\n\n2) METROOOX LB 100 m6 CAPSULE *\n\ne-\n\naitas Pood - Oelly\n\n5 Oeye\n\n6\n\nComgenioenn \u00a7 Onrytyaies 160 0G \u00a2 Lamtesthe $ @iiee Spare\n\n| AR\n\n] tie @rew\n\n3)\n\nHIPEN 20006 TABLET *\n\nle\n\ni)\n\nad Oaty - $ Oeyes\n\n6\n\nCanposinon Cefteres POO mG\n\ntray\n\n1 After breenfant\n\n| Me Qo\n\n4\n\nXPECTiS*\n\n3\n\nQ-\n\n1\n\nAfter Food - Dally - $ Days\n\nCOmpUntnn Amore JO ML \u00a9 Canmore $0 906 + Loweneliaerrent 1 Pi\n\nTiming\n\n1 After Dreabfeuw.\n\n1 After Gere\n\n5:\n\nBROLEM TAB \u00ae\n\no-\n\nOo-\n\n1\n\nAfter Food - Oety - 5 Deys\n\n5\n\nTeme\n\n1 After denner\n\n6)\n\nNAMSTER P \u00ae\n\n0-\n\nsts Feed - Oaty - S$ Ooys\n\npo\n\na SO! 6;",
+    "cleaned_text": "7742: Prachi Yedav (207, Female)\n\n9021761870\n\nfolic acid &\n\n25-Sep-2023 06:14\n\nTime\n\nComplaints\n\ntEVER COLD COUGH . VOMITING . omeprazole ibuprofen\n\nOveanosis. WRT)\n\nK\n\nMedicine\n\nComa Timing - Freq. - Durstion\n\n1) PAM HO \u00ae\n\n1-\n\no-\n\n\u00b0\n\nBafere Food\n\nonce daily - 5 Ceys\n\nCompeuter Ownperaiens 39 9G + Custis 49 0G\n\nTt\n\n1 Gefore trest\u00e9est\n\n2) metronidazole LB 100 m6 CAPSULE *\n\ne-\n\naitas by mouthd - Oelly\n\n5 Oeye\n\n6\n\nComgenioenn \u00a7 Onrytyaies 160 0G \u00a2 Lamtesthe $ @iiee Spare\n\n| AR\n\n] torsemide @rew\n\n3)\n\nHIPEN 20006 rabeprazole *\n\nle\n\ni)\n\nad Oaty - $ Oeyes\n\n6\n\nCanposinon Cefteres by mouth mG\n\ntray\n\n1 After breenfant\n\n| Me Qo\n\n4\n\nXPECTiS*\n\n3\n\nQ-\n\n1\n\nAfter Food - once daily - $ Days\n\nCOmpUntnn amlodipine JO ML \u00a9 Canmore $0 906 + Loweneliaerrent 1 Pi\n\nTiming\n\n1 After Dreabfeuw.\n\n1 After Gere\n\n5:\n\nBROLEM TAB \u00ae\n\no-\n\nOo-\n\n1\n\nAfter Food - Oety - 5 Deys\n\n5\n\nTeme\n\n1 After denner\n\n6)\n\nNAMSTER P \u00ae\n\n0-\n\nsts Feed - Oaty - S$ Ooys\n\npo\n\na SO! 6;",
+    "medications": [
+        "metronidazole LB 100 m6 CAPSULE",
+        "HIPEN 20006 rabeprazole",
+        "metronidazole",
+        "Onrytyaies",
+        "Hipen",
+        "COLD",
+        "COUGH",
+        "VOMITING",
+        "BROLEM",
+        "NAMSTER"
+    ],
+    "dosages": [
+        "Not mentioned",
+        "Not mentioned",
+        "9 g",
+        "0 g",
+        "20006",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "frequencies": [
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "routes": [
+        "Not mentioned",
+        "Not mentioned",
+        "Capsule",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "durations": [
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned",
+        "Not mentioned"
+    ],
+    "medicines_strict": {
+        "medicines": [
+            {
+                "name": "metronidazole LB 100 m6 CAPSULE",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "metronidazole LB 100 m6 CAPSULE"
+            },
+            {
+                "name": "HIPEN 20006 rabeprazole",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "HIPEN 20006 rabeprazole"
+            },
+            {
+                "name": "metronidazole",
+                "strength": "9 g",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Capsule",
+                "evidence": "metronidazole lb"
+            },
+            {
+                "name": "Onrytyaies",
+                "strength": "0 g",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "onrytyaies"
+            },
+            {
+                "name": "Hipen",
+                "strength": "20006",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "hipen"
+            },
+            {
+                "name": "COLD",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "COLD"
+            },
+            {
+                "name": "COUGH",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "COUGH"
+            },
+            {
+                "name": "VOMITING",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "VOMITING"
+            },
+            {
+                "name": "BROLEM",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "BROLEM"
+            },
+            {
+                "name": "NAMSTER",
+                "strength": "Not mentioned",
+                "frequency": "Not mentioned",
+                "duration": "Not mentioned",
+                "route": "Not mentioned",
+                "evidence": "NAMSTER"
+            }
+        ]
+    },
+    "confidence": 84.33333333333334,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "paddleocr_attempted": false,
+    "paddleocr_used": false,
+    "handwriting_detected": false,
+    "handwriting_attempted": false,
+    "text_quality": 0.751561137275423,
+    "medical_signal": 0.21153846153846154,
+    "ocr_mode": "auto",
+    "preprocessed_url": "/uploads/enhanced_1780411218_pre3.jpeg",
+    "accuracy": {
+        "overall_accuracy": 84.33333333333334,
+        "character_accuracy": 84.33333333333334,
+        "word_accuracy": 84.33333333333334,
+        "medication_accuracy": 84.33333333333334
+    },
+    "structured_prescriptions": [
+        {
+            "name": "Metronidazole Lb 100 M6 Capsule",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Hipen 20006 Rabeprazole",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Metronidazole",
+            "dosage": "9 g",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Capsule"
+        },
+        {
+            "name": "Onrytyaies",
+            "dosage": "0 g",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Hipen",
+            "dosage": "20006",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Cold",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Cough",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Vomiting",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Brolem",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        },
+        {
+            "name": "Namster",
+            "dosage": "Not mentioned",
+            "frequency": "Not mentioned",
+            "duration": "Not mentioned",
+            "instruction": "Not mentioned"
+        }
+    ],
+    "medication_count": 10,
+    "patient_name": "prachi",
+    "doctor_name": "prachi",
+    "date": "2026-06-02",
+    "user_id": 7,
+    "language_labels": [
+        "English"
+    ]
+}

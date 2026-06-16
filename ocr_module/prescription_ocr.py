@@ -13,7 +13,7 @@ from .enhanced_ocr import (
     extract_medical_entities,
 )
 # Import ImageTrainer for handling trained images
-from .image_trainer import ImageTrainer
+from .image_trainer import ImageTrainer, is_usable_trained_result
 
 # Remove PaddleOCR initialization as we are using Tesseract now.
 # try:
@@ -273,8 +273,8 @@ def process_prescription(image_path, output_dir=None, languages=None):
         from .image_trainer import ImageTrainer
         trainer = ImageTrainer()
         trained_result = trainer.find_match(image_path)
-        if trained_result:
-            # Return the trained result directly
+        if trained_result and is_usable_trained_result(trained_result):
+            print(f"Using trained data for {image_path}")
             return trained_result
     except Exception as e:
         print(f"Error checking for trained image: {e}")
@@ -368,7 +368,7 @@ def main():
     else:
         print("No medications detected")
     
-    print(f"\nConfidence: {results['confidence']}%")
+    print(f"\nConfidence: {results.get('confidence', 0)}%")
     
     # Evaluate accuracy if requested
     if args.evaluate:

@@ -587,7 +587,7 @@ body {
                             <i class="fas fa-cloud-upload-alt upload-icon pulse"></i>
                             <h4>Drag & Drop Prescription Image</h4>
                             <p>or click to browse files</p>
-                            <input type="file" id="prescription_image" name="prescription_image" class="d-none" accept=".jpg,.jpeg,.png,.tif,.tiff">
+                            <input type="file" id="prescription_image" name="prescription_image" class="d-none" accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,image/*">
                             <img id="preview" class="d-none">
                             <p class="file-info mt-2 d-none" id="file-info"></p>
                             
@@ -1045,9 +1045,16 @@ body {
         step2.classList.remove('active');
     });
 
+    const prescriptionForm = document.getElementById('prescription-form');
+    prescriptionForm.addEventListener('submit', () => {
+        step2.classList.remove('active');
+        step2.classList.add('completed');
+        step3.classList.add('active');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing... (may take 1–2 min)';
+    });
+
     submitBtn.addEventListener('click', () => {
-        // Mark step 2 as completed and step 3 as active
-        // This is just visual as the form will submit
         step2.classList.remove('active');
         step2.classList.add('completed');
         step3.classList.add('active');

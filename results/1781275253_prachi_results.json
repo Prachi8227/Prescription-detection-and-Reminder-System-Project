@@ -1,0 +1,19 @@
+{
+    "image_path": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\1781275253_prachi.png",
+    "preprocessed_image": "D:\\mainProject\\mProject\\mediscribe_app\\uploads\\enhanced_1781275253_prachi.png",
+    "raw_text": "Qo, \"\n52. :\nep Ay TIER L\n_Ta- LorFtox O22 \u2014_@\ni?\n\n\u2014 Gur ck we 2 |\not l\n\ngy Mafed ste \u2014\u2014 oO\n|? |\n\n- tedga) \u2014\u2014\u2014\u2014 \u00ae\n\u00a2\u2014I 28 f |\nve",
+    "cleaned_text": "Qo, \"\n52. :\nep Ay TIER L\n_Ta- LorFtox O22 \u2014_@\ni?\n\n\u2014 Gur ck we 2 |\not l\n\ngy Mafed ste \u2014\u2014 oO\n|? |\n\n- tedga) \u2014\u2014\u2014\u2014 \u00ae\n\u00a2\u2014I 28 f |\nve",
+    "medications": [],
+    "dosages": [],
+    "frequencies": [],
+    "routes": [],
+    "durations": [],
+    "structured_prescriptions": [],
+    "medication_count": 0,
+    "confidence": 98.0,
+    "languages_used": [
+        "eng"
+    ],
+    "ocr_engine": "tesseract",
+    "extraction_mode": "general"
+}
